@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosmos - Guerra de Espirógrafos</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #00f2ff;
+    --secondary: #7000ff;
+    --accent: #ff00ea;
+  }
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Outfit', 'Segoe UI', sans-serif;
+    color: white;
+  }
+  canvas {
+    width: 100vw;
+    height: 100vh;
+    display: block;
+  }
+
+  /* TELA INICIAL */
+  #overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at center, rgba(10, 10, 25, 0.8) 0%, #000 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(15px);
+  }
+  #overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .login-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+    max-width: 400px;
+    width: 90%;
+  }
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+  }
+  p.subtitle-login {
+    color: #888;
+    margin-bottom: 30px;
+  }
+  input#username {
+    width: 100%;
+    padding: 15px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    border-radius: 10px;
+    color: white;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    outline: none;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+  }
+  input#username:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+  }
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(45deg, var(--secondary), var(--primary));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 242, 255, 0.4);
+  }
+
+  /* CONFIGURAÇÕES */
+  .settings-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+  }
+  .settings-btn:hover { background: rgba(255,255,255,0.15); }
+  
+  #settings-panel {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 15, 30, 0.95);
+    padding: 30px;
+    border-radius: 20px;
+    border: 1px solid var(--primary);
+    z-index: 2000;
+    display: none;
+    width: 300px;
+    text-align: left;
+    box-shadow: 0 0 100px rgba(0,0,0,0.8);
+  }
+  #settings-panel.active { display: block; }
+  .settings-panel h2 { margin-top: 0; font-size: 1.2rem; text-transform: uppercase; color: var(--primary); }
+  .quality-option {
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .quality-option.active { border-color: var(--primary); background: rgba(0, 242, 255, 0.1); }
+  .quality-option span { display: block; font-size: 14px; font-weight: bold; }
+  .quality-option small { font-size: 11px; color: #888; }
+
+  /* HUD */
+  #ui-layer {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    display: none;
+  }
+  .hud-top {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+  }
+  #score {
+    font-size: 56px;
+    font-weight: 800;
+    margin: 0;
+    text-shadow: 0 0 20px var(--primary);
+  }
+  #game-msg {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 5px;
+    color: var(--primary);
+  }
+  .players-list {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(5px);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    min-width: 150px;
+  }
+  .players-list h3 {
+    margin: 0 0 10px 0;
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+  }
+  .player-item {
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .player-item.self { color: var(--primary); font-weight: bold; }
+
+  #fps {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 10px;
+    color: #444;
+  }
+
+  /* DASH BAR */
+  #dash-bar {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.2);
+  }
+  #dash-fill {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to right, var(--accent), var(--primary));
+      transition: width 0.1s;
+  }
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <div class="login-card">
+    <h1>Cosmos</h1>
+    <p class="subtitle-login">Guerra Infinita de Espirógrafos</p>
+    <input type="text" id="username" placeholder="Seu nome estelar..." maxlength="12">
+    <button class="start-btn" onclick="startGame()">Entrar na Guerra</button>
+  </div>
+  <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
+</div>
+
+<div id="settings-panel" class="settings-panel">
+  <h2>Qualidade Gráfica</h2>
+  <div class="quality-option" id="q-low" onclick="setQuality('low')">
+    <span>DESEMPENHO (50 jogadores)</span>
+    <small>Foco em FPS. Ideal para o modo guerra.</small>
+  </div>
+  <div class="quality-option active" id="q-medium" onclick="setQuality('medium')">
+    <span>EQUILIBRADO (20 jogadores)</span>
+    <small>Bom visual e boa quantidade de players.</small>
+  </div>
+  <div class="quality-option" id="q-ultra" onclick="setQuality('ultra')">
+    <span>ULTRA (8 jogadores)</span>
+    <small>Mantenha-se perto dos outros para ver tudo.</small>
+  </div>
+  <button class="start-btn" style="margin-top:20px; padding:10px" onclick="toggleSettings()">Fechar</button>
+</div>
+
+<canvas></canvas>
+
+<div id="ui-layer">
+  <div class="hud-top">
+    <div id="score">0</div>
+    <div id="game-msg">SEGURE CLIQUE PARA DASH (Ataque/Fuga)</div>
+  </div>
+  <div id="dash-bar"><div id="dash-fill"></div></div>
+  <div class="players-list" id="playersList">
+    <h3>VIAJANTES</h3>
+    <div id="playersItems"></div>
+  </div>
+  <div id="fps">FPS: 0</div>
+</div>
+
+<script type="x-shader/x-fragment" id="fragmentShader">
+  precision highp float;
+  uniform float time;
+  uniform vec2 resolution;
+  uniform float saturation;
+  uniform float brightness;
+  uniform vec2 uCameraPos;
+
+  uniform vec2 pPos;
+  uniform vec2 pVel;
+  uniform int pCurve;
+  uniform float pParticles;
+  
+  uniform vec2 otherPos[50];
+  uniform vec2 otherVel[50];
+  uniform float otherCurve[50];
+  uniform float otherParticles[50];
+  uniform float otherDamage[50]; // Estado de fraqueza dos inimigos
+  uniform float otherGlow[50]; // ESTADO DE BRILHO EXTRA
+  uniform int numOthers;
+  uniform float otherLimit; 
+
+  uniform vec2 foodPos[100];
+  uniform float foodHue[100];
+  uniform int numFood;
+  uniform float pDamage; // Estado de fraqueza local
+  uniform float pGlow;  // ESTADO DE BRILHO EXTRA LOCAL
+  
+  #define PI 3.14159265359
+
+  vec3 getSpirographColor(float t, float i, float sat) {
+    vec3 color = vec3(0.5 + 0.5 * sin(t + i * 0.1), 0.5 + 0.5 * cos(t + i * 0.15), 0.5 + 0.5 * sin(t + i * 0.2));
+    float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+    return mix(vec3(luminance), color, sat);
+  }
+
+  vec2 getCurvePos(int type, float t, float i, float pCount, vec3 params) {
+    float phase = i * PI * 0.01;
+    vec2 pos = vec2(0.0);
+    if (type == 0) pos = vec2(sin(t * params.x + phase) * cos(t * params.y + phase), cos(t * params.z + phase) * sin(t * params.y + phase)) * (0.5 + 0.3 * sin(t + phase));
+    else if (type == 1) { float r = 0.1 + 0.4 * (i / max(pCount, 1.0)); pos = vec2( r * sin(t * params.x + i * 0.1), r * cos(t * params.y + i * 0.1) ); }
+    else if (type == 2) { float petals = 5.0 + 3.0 * sin(t * 0.1); float r = 0.4 * (0.5 + 0.5 * sin(phase * 5.0 + t)); pos = vec2(r * sin(t * params.x + i * petals * 0.01) * cos(t * params.z), r * cos(t * params.y + i * petals * 0.01) * sin(t * params.z)); }
+    else if (type == 3) { float r = 0.4 * (0.5 + 0.5 * sin(i * 0.1 + t)); float a = t * 0.5 + i * PI * 2.0 / max(pCount, 1.0); pos = vec2( r * sin(a * params.x) * cos(a * params.y), r * sin(a * params.z) * sin(a * params.y) ); }
+    else if (type == 4) { pos = vec2((i/max(pCount, 1.0)) * 1.5 - 0.75, 0.4 * sin(t * params.x + 10.0 * (i/max(pCount, 1.0)) * params.y) * cos(t * params.z)); }
+    else if (type == 5) { float orbitSpeed = params.x * 0.5; float orbitRadius = 0.2 + 0.15 * sin(i * 0.1); float centerX = 0.2 * sin(t * params.y); float centerY = 0.2 * cos(t * params.z); pos = vec2(centerX + orbitRadius * cos(t * orbitSpeed + i * 0.2), centerY + orbitRadius * sin(t * orbitSpeed + i * 0.2)); }
+    else if (type == 6) { float a = 0.5 * (i / max(pCount, 1.0)); float r = 0.3 * (sin(t * 0.1) * 0.5 + 0.5); pos = vec2(r * sin(a * PI * params.x + t) * cos(a * PI * 3.0 * params.y + t), r * sin(a * PI * params.z + t) * sin(a * PI * 2.0 * params.y + t)); }
+    else if (type == 7) { float a = i / max(pCount, 1.0) * PI * 2.0; float z = (i / max(pCount, 1.0)) * 2.0 - 1.0; float radius = 0.3 + 0.1 * sin(t * params.x + z * 5.0); pos = vec2(radius * sin(a * params.y + t * 2.0), z * cos(t * params.z) + radius * cos(a * params.y + t * 2.0) * sin(t)); }
+    else if (type == 8) { float angle = i / max(pCount,1.0) * PI * 10.0 + t; float radius = 0.05 + 0.3 * (i / max(pCount, 1.0)); pos = vec2(radius * cos(angle * params.x) * sin(t * params.y), radius * sin(angle * params.z) * cos(t * params.y)); }
+    else if (type == 9) { float width = 0.6; float a = (i / max(pCount, 1.0) - 0.5) * width; pos = vec2( a, (0.2 + 0.15 * sin(t * 0.2)) * sin(t * params.x + a * 10.0 * params.y) * cos(t * params.z + a * 8.0) ); }
+    return pos;
+  }
+
+  void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * resolution.xy) / min(resolution.x, resolution.y);
+    vec3 outColor = vec3(0.0);
+    float t = time * 0.8;
+    
+    vec2 gridUv = uv + uCameraPos; 
+    float grid = 0.0;
+    grid += smoothstep(0.495, 0.5, abs(fract(gridUv.x * 2.0) - 0.5));
+    grid += smoothstep(0.495, 0.5, abs(fract(gridUv.y * 2.0) - 0.5));
+    outColor += vec3(0.05, 0.15, 0.3) * grid * 0.4;
+    
+    float star = fract(sin(dot(floor(gridUv * 5.0), vec2(12.9898, 78.233))) * 43758.5453);
+    if(star > 0.99) outColor += vec3(0.6) * star;
+
+    for(int j = 0; j < 100; j++) {
+        if (j >= numFood) break;
+        vec2 fRelative = foodPos[j] - uCameraPos;
+        float dFood = length(uv - fRelative);
+        float hue = foodHue[j];
+        vec3 fColor = vec3(0.5 + 0.5 * sin(hue), 0.5 + 0.5 * cos(hue + 2.0), 0.5 + 0.5 * sin(hue + 4.0));
+        outColor += fColor * (0.015 / (dFood + 0.001)) * (0.8 + 0.2 * sin(time * 8.0 + float(j)));
+    }
+
+    // 2. Render Local Player at screen center
+    vec3 params = vec3(1.0); 
+    float sizeFactor = pParticles / 300.0;
+    float weaknessPenalty = (1.0 - pDamage * 0.8);
+    float localSat = saturation * (0.5 + 0.5 * sizeFactor) * weaknessPenalty + pGlow;
+    float localBri = (brightness * (0.5 + 0.5 * sizeFactor) + pGlow * 1.5) * weaknessPenalty;
+    
+    for(float i = 0.0; i < 300.0; i++) {
+        if (i >= pParticles) break;
+        vec2 pos = getCurvePos(pCurve, t, i, pParticles, params);
+        float dragWeight = pow(i / max(pParticles, 1.0), 1.5) * 20.0; 
+        pos = pos + pPos - (pVel * dragWeight);
+        float d = length(uv - pos);
+        outColor += getSpirographColor(t, i, localSat) * (0.004 / (d + 0.001)) * localBri;
+    }
+
+    // 3. Render Other Players
+    for(int k = 0; k < 50; k++) {
+        if (k >= numOthers) break;
+        vec2 oWorldPos = otherPos[k];
+        vec2 oRelative = oWorldPos - uCameraPos;
+        if (length(oRelative) > 1.5) continue;
+
+        vec2 oVel = otherVel[k];
+        int oCurve = int(otherCurve[k]);
+        float oPart = otherParticles[k];
+        float oSizeFactor = oPart / 300.0;
+        float oWeak = 1.0 - otherDamage[k] * 0.8;
+        float oGL = otherGlow[k];
+        float oSat = saturation * (0.5 + 0.5 * oSizeFactor) * 0.7 * oWeak + oGL;
+        float oBri = (brightness * (0.5 + 0.5 * oSizeFactor) + oGL * 1.5) * oWeak;
+        
+        float maxP = min(oPart, otherLimit); 
+        for(float i = 0.0; i < 60.0; i++) {
+            if (i >= maxP) break;
+            vec2 pos = getCurvePos(oCurve, t, i, maxP, params);
+            float dragWeight = pow(i / maxP, 1.5) * 20.0;
+            pos = pos + oRelative - (oVel * dragWeight);
+            float d = length(uv - pos);
+            outColor += getSpirographColor(t + float(k), i, oSat) * (0.002 / (d + 0.001)) * oBri;
+        }
+    }
+    gl_FragColor = vec4(outColor * brightness, 1.0);
+  }
+</script>
+
+<script>
+const SUPABASE_URL = 'https://voavqspdeeepzvckgpjt.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvYXZxc3BkZWVlcHp2Y2tncGp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMTU1NTcsImV4cCI6MjA4OTg5MTU1N30.mFnYYBnc__Q7QmLG8no6lk8Mi9pmOjM_CdZGBUrUG8c';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let gl, program;
+let startTime, lastTime = 0;
+let myName = "Anon";
+let isPlaying = false;
+
+let quality = 'medium'; 
+let settings = {
+    low: { otherLimit: 8.0, maxVisible: 50 },
+    medium: { otherLimit: 25.0, maxVisible: 20 },
+    ultra: { otherLimit: 60.0, maxVisible: 8 }
+};
+
+let mouseX = 0, mouseY = 0;
+let playerX = 0, playerY = 0;
+let playerVelX = 0, playerVelY = 0;
+let dashEnergy = 100;
+let isDashing = false;
+let myDamage = 0; 
+let myGlow = 0; // Estado de brilho extra (vitória/alimentação)
+let score = 0;
+let myCurve = 5;
+let myParticles = 10;
+const MAX_PARTICLES = 300;
+const MAP_SIZE = 8.0; 
+
+let others = {}; 
+let foods = [];   
+let channel;
+
+let uTime, uRes, uSat, uBri, uOtherLimit, uCameraPos, uPDamage, uPGlow;
+let uPPos, uPVel, uPCurve, uPPart;
+let uOtherPos, uOtherVel, uOtherCurve, uOtherPart, uNumOthers, uOtherDamage, uOtherGlow;
+let uFoodPos, uFoodHue, uNumFood;
+
+function toggleSettings() {
+    const p = document.getElementById('settings-panel');
+    p.classList.toggle('active');
+}
+
+function setQuality(lvl) {
+    quality = lvl;
+    document.querySelectorAll('.quality-option').forEach(el => el.classList.remove('active'));
+    document.getElementById(`q-${lvl}`).classList.add('active');
+}
+
+async function startGame() {
+    const input = document.getElementById('username');
+    if (!input.value.trim()) { alert("Digite um nome!"); return; }
+    myName = input.value.trim();
+    document.getElementById('overlay').classList.add('hidden');
+    document.getElementById('ui-layer').style.display = 'block';
+    myCurve = Math.floor(Math.random() * 10);
+    initWebGL();
+    initMultiplayer();
+    window.addEventListener('mousedown', (e) => { if(e.button === 0 || e.button === 2) isDashing = true; });
+    window.addEventListener('mouseup', () => isDashing = false);
+    window.addEventListener('contextmenu', e => e.preventDefault());
+    isPlaying = true;
+}
+
+function initWebGL() {
+    const canvas = document.querySelector('canvas');
+    gl = canvas.getContext('webgl');
+    const vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, `attribute vec2 position; void main() { gl_Position = vec4(position, 0.0, 1.0); }`);
+    gl.compileShader(vs);
+    const fs = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fs, document.getElementById('fragmentShader').textContent);
+    gl.compileShader(fs);
+    program = gl.createProgram();
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+    const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    const posLoc = gl.getAttribLocation(program, 'position');
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+    uTime = gl.getUniformLocation(program, 'time');
+    uRes = gl.getUniformLocation(program, 'resolution');
+    uSat = gl.getUniformLocation(program, 'saturation');
+    uBri = gl.getUniformLocation(program, 'brightness');
+    uCameraPos = gl.getUniformLocation(program, 'uCameraPos');
+    uPPos = gl.getUniformLocation(program, 'pPos');
+    uPVel = gl.getUniformLocation(program, 'pVel');
+    uPCurve = gl.getUniformLocation(program, 'pCurve');
+    uPPart = gl.getUniformLocation(program, 'pParticles');
+    uOtherPos = gl.getUniformLocation(program, 'otherPos');
+    uOtherVel = gl.getUniformLocation(program, 'otherVel');
+    uOtherCurve = gl.getUniformLocation(program, 'otherCurve');
+    uOtherPart = gl.getUniformLocation(program, 'otherParticles');
+    uNumOthers = gl.getUniformLocation(program, 'numOthers');
+    uFoodPos = gl.getUniformLocation(program, 'foodPos');
+    uFoodHue = gl.getUniformLocation(program, 'foodHue');
+    uNumFood = gl.getUniformLocation(program, 'numFood');
+    uOtherLimit = gl.getUniformLocation(program, 'otherLimit');
+    uPDamage = gl.getUniformLocation(program, 'pDamage');
+    uOtherDamage = gl.getUniformLocation(program, 'otherDamage');
+    uPGlow = gl.getUniformLocation(program, 'pGlow');
+    uOtherGlow = gl.getUniformLocation(program, 'otherGlow');
+    startTime = Date.now();
+    resize();
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', (e) => {
+        const minR = Math.min(gl.canvas.width, gl.canvas.height);
+        mouseX = (e.clientX - 0.5 * gl.canvas.width) / minR;
+        mouseY = -(e.clientY - 0.5 * gl.canvas.height) / minR;
+    });
+    render();
+}
+
+function initMultiplayer() {
+    channel = supabaseClient.channel('war_room', { config: { presence: { key: myName } } });
+    channel
+    .on('presence', { event: 'sync' }, () => { updatePlayersList(channel.presenceState()); })
+    .on('presence', { event: 'leave' }, ({ leftPresences }) => { if(leftPresences) leftPresences.forEach(p => delete others[p.key]); })
+    .on('broadcast', { event: 'pos' }, ({ payload }) => { if (payload.id !== myName) others[payload.id] = payload; })
+    .on('broadcast', { event: 'eat' }, ({ payload }) => { if (isHost()) respawnFood(payload.index); })
+    .on('broadcast', { event: 'hit' }, ({ payload }) => {
+        if (payload.target === myName) {
+            myParticles = Math.max(10, myParticles - 20);
+            score = Math.max(0, score - 5);
+            document.getElementById('score').textContent = score;
+            showMsg("ATINGIDO POR " + payload.attacker + "!");
+        }
+    })
+    .on('broadcast', { event: 'drain' }, ({ payload }) => {
+        if (payload.target === myName) {
+            myParticles = Math.max(10, myParticles - 0.8);
+            myDamage = Math.min(1.0, myDamage + 0.05); // Ficando fraco (menos brilho/cor)
+        }
+    })
+    .on('broadcast', { event: 'food_sync' }, ({ payload }) => { foods = payload.foods; })
+    .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+            await channel.track({ name: myName, online_at: new Date().toISOString() });
+            // Verificar host periodicamente se a comida estiver vazia
+            const hostCheck = setInterval(() => {
+                if (!isPlaying) return;
+                if (isHost() && foods.length === 0) {
+                    console.log("Host detectado, gerando comida...");
+                    initFoods();
+                } else if (foods.length > 0) {
+                    clearInterval(hostCheck);
+                }
+            }, 2000);
+        }
+    });
+    setInterval(() => {
+        if (isPlaying) {
+            channel.send({ 
+                type: 'broadcast', 
+                event: 'pos', 
+                payload: { id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, c: myCurve, p: myParticles, d: myDamage, g: myGlow } 
+            });
+        }
+    }, 40);
+}
+
+function showMsg(txt) {
+    const el = document.getElementById('game-msg');
+    el.textContent = txt;
+    el.style.color = "#ff4444";
+    setTimeout(() => { if(el.textContent === txt) el.textContent = "SEGURE CLIQUE PARA VELOCIDADE (Dash / Ataque)"; }, 2000);
+}
+
+function updatePlayersList(presenceState) {
+    const listDiv = document.getElementById('playersItems');
+    listDiv.innerHTML = '';
+    Object.keys(presenceState).forEach(key => {
+        const div = document.createElement('div');
+        div.className = 'player-item' + (key === myName ? ' self' : '');
+        div.innerHTML = `<span>${key}</span>`;
+        listDiv.appendChild(div);
+    });
+}
+
+function isHost() {
+    const state = channel.presenceState();
+    const keys = Object.keys(state).sort();
+    return keys[0] === myName;
+}
+
+function initFoods() {
+    foods = [];
+    for(let i=0; i<100; i++) {
+        foods.push({ x: (Math.random() * 2 - 1) * MAP_SIZE, y: (Math.random() * 2 - 1) * MAP_SIZE, hue: Math.random() * Math.PI * 2 });
+    }
+    syncFoods();
+}
+
+function respawnFood(index) {
+    foods[index] = { x: (Math.random() * 2 - 1) * MAP_SIZE, y: (Math.random() * 2 - 1) * MAP_SIZE, hue: Math.random() * Math.PI * 2 };
+    syncFoods();
+}
+
+function syncFoods() { channel.send({ type: 'broadcast', event: 'food_sync', payload: { foods } }); }
+
+function gameTick() {
+    let lastX = playerX, lastY = playerY;
+    
+    // Recuperação Natural e Decaimento de Brilho
+    myDamage = Math.max(0, myDamage - 0.005);
+    myGlow = Math.max(0, myGlow - 0.015); // Decaimento do brilho extra
+
+    let speedBoost = 1.0;
+    if (isDashing && dashEnergy > 0) {
+        speedBoost = 3.0; dashEnergy -= 2.5;
+        if (Math.random() > 0.8) myParticles = Math.max(10, myParticles - 0.5);
+    } else dashEnergy = Math.min(100, dashEnergy + 0.4);
+    document.getElementById('dash-fill').style.width = dashEnergy + "%";
+
+    let turnSpeed = Math.max(0.04 * speedBoost - (myParticles / MAX_PARTICLES) * 0.025, 0.005);
+    playerX += (mouseX * 2.0) * turnSpeed;
+    playerY += (mouseY * 2.0) * turnSpeed;
+    playerX = Math.max(-MAP_SIZE, Math.min(MAP_SIZE, playerX));
+    playerY = Math.max(-MAP_SIZE, Math.min(MAP_SIZE, playerY));
+    playerVelX = playerX - lastX;
+    playerVelY = playerY - lastY;
+    
+    let catchRadius = 0.05 + (myParticles / MAX_PARTICLES) * 0.12;
+    foods.forEach((f, idx) => {
+        let d = Math.sqrt((playerX - f.x)**2 + (playerY - f.y)**2);
+        if (d < catchRadius) {
+            score++; document.getElementById('score').textContent = score;
+            if (myParticles < MAX_PARTICLES) myParticles += 5;
+            myGlow = Math.min(1.2, myGlow + 0.4); // Brilho de alimentação!
+            channel.send({ type: 'broadcast', event: 'eat', payload: { index: idx } });
+            f.x = -999; 
+        }
+    });
+
+    for (let id in others) {
+        let o = others[id];
+        let d = Math.sqrt((playerX - o.x)**2 + (playerY - o.y)**2);
+        
+        // Mecânica de comer (Drenagem por proximidade)
+        if (d < catchRadius * 1.2) {
+            // Eu estou perto do centro dele, eu começo a "comer"
+            channel.send({ type: 'broadcast', event: 'drain', payload: { target: id, attacker: myName } });
+            if (myParticles < MAX_PARTICLES) myParticles += 0.5;
+            myGlow = Math.min(1.2, myGlow + 0.04); // Brilho de combate contínuo!
+            score += 1;
+            document.getElementById('score').textContent = score;
+        }
+
+        if (d < catchRadius * 1.5 && isDashing && (playerVelX*playerVelX + playerVelY*playerVelY) > 0.0001) {
+            channel.send({ type: 'broadcast', event: 'hit', payload: { target: id, attacker: myName } });
+            if (myParticles < MAX_PARTICLES) myParticles += 20;
+            score += 15; document.getElementById('score').textContent = score;
+            isDashing = false; dashEnergy = Math.max(0, dashEnergy - 30);
+        }
+    }
+
+    if (myParticles >= 250) myCurve = 0;
+    else if (myParticles >= 180) myCurve = 3;
+    else if (myParticles >= 120) myCurve = 7;
+    else if (myParticles >= 70) myCurve = 8;
+    else if (myParticles >= 30) myCurve = 5;
+    else myCurve = 1;
+}
+
+function render(now = 0) {
+    if (!gl) return;
+    document.getElementById('fps').textContent = `FPS: ${Math.round(1000 / (now - lastTime))}`;
+    lastTime = now;
+    if (isPlaying) gameTick();
+    gl.useProgram(program);
+    gl.uniform1f(uTime, (Date.now() - startTime) * 0.001);
+    gl.uniform2f(uRes, gl.canvas.width, gl.canvas.height);
+    gl.uniform1f(uSat, 1.3); gl.uniform1f(uBri, 1.1);
+    gl.uniform2f(uCameraPos, playerX, playerY);
+    gl.uniform2f(uPPos, 0, 0); gl.uniform2f(uPVel, playerVelX, playerVelY);
+    gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);
+    gl.uniform1f(uPDamage, myDamage);
+    gl.uniform1f(uPGlow, myGlow);
+
+    const q = settings[quality];
+    gl.uniform1f(uOtherLimit, q.otherLimit);
+    let ids = Object.keys(others).slice(0, q.maxVisible);
+    gl.uniform1i(uNumOthers, ids.length);
+    ids.forEach((id, i) => {
+        let o = others[id];
+        gl.uniform2f(gl.getUniformLocation(program, `otherPos[${i}]`), o.x, o.y);
+        gl.uniform2f(gl.getUniformLocation(program, `otherVel[${i}]`), o.vx, o.vy);
+        gl.uniform1f(gl.getUniformLocation(program, `otherCurve[${i}]`), o.c);
+        gl.uniform1f(gl.getUniformLocation(program, `otherParticles[${i}]`), o.p);
+        gl.uniform1f(gl.getUniformLocation(program, `otherDamage[${i}]`), o.d || 0);
+        gl.uniform1f(gl.getUniformLocation(program, `otherGlow[${i}]`), o.g || 0);
+    });
+    gl.uniform1i(uNumFood, foods.length);
+    foods.forEach((f, i) => {
+        gl.uniform2f(gl.getUniformLocation(program, `foodPos[${i}]`), f.x, f.y);
+        gl.uniform1f(gl.getUniformLocation(program, `foodHue[${i}]`), f.hue);
+    });
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+}
+
+function resize() {
+    gl.canvas.width = window.innerWidth;
+    gl.canvas.height = window.innerHeight;
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+}
+</script>
+</body>
+</html>

@@ -481,7 +481,7 @@
     <h3>Laboratório Criativo</h3>
     <div class="slider-row">
       <label>TIPO DE CURVA (FORÇAR) <span id="val-type">5</span></label>
-      <input type="range" min="0" max="141" step="1" value="5" id="sld-type" oninput="updateEditor()">
+      <input type="range" min="0" max="144" step="1" value="5" id="sld-type" oninput="updateEditor()">
     </div>
     <div class="slider-row" style="display:flex; justify-content:space-between; gap:5px;">
       <div style="flex:1">
@@ -902,8 +902,36 @@
         float r = 0.1 * length(zeta) * aa * params.y;
         pos = vec2(zeta.x, zeta.y) * 0.15 * params.z * (1.0 + 0.1*sin(t));
 
+    } else if (type == 141) { 
+        // 141: Harmônicos Esféricos (Orbitais Quânticos da Equação de Schrödinger)
+        float theta_sh = a;
+        float phi_sh = (aa - 0.5) * PI; // -PI/2 a PI/2
+        float m_param = floor(params.x * 5.0 + n);
+        float l_param = floor(params.y * 5.0 + n) + abs(m_param);
+        float p_val = pow(abs(cos(theta_sh)), abs(m_param)) * sin(l_param * phi_sh);
+        float y_val = abs(p_val) * (1.0 + 0.5 * cos(m_param * theta_sh + t));
+        float r_sh = 0.5 * y_val * params.z;
+        pos = vec2(r_sh * cos(theta_sh)*cos(phi_sh), r_sh * sin(theta_sh)*cos(phi_sh));
+
+    } else if (type == 142) { 
+        // 142: Fibração de Hopf (A Matemática da Quarta Dimensão - Hiperesferas S3 -> 3D)
+        float t4 = t * params.x;
+        float xi1 = a + n; 
+        float xi2 = aa * PI * 2.0 + t;
+        float eta = params.y * PI * 0.5; // Modela o nível de profundidade na 4ª dimensão
+        float x1 = cos(xi1)*sin(eta);
+        float x2 = sin(xi1)*sin(eta);
+        float x3 = cos(xi2)*cos(eta);
+        float x4 = sin(xi2)*cos(eta);
+        float denom = 1.0 - x4 + 0.0001; // Projeção da 4D (R4) para 3D (R3)
+        float x_3d = x1 / denom;
+        float y_3d = x2 / denom;
+        float z_3d = x3 / denom;
+        float proj = 1.0 / (2.0 - z_3d * 0.3 * params.z);
+        pos = vec2(x_3d, y_3d) * 0.2 * proj;
+
     } else { 
-        // type 141+: A MATRIZ DO ONIVERSO (Singularidade Hipercúbica)
+        // type 143+: A MATRIZ DO ONIVERSO (Singularidade Hipercúbica Final)
         float r = 0.3 * abs(sin(a * floor(params.x*5.0) + t));
         float fold = cos(a * floor(params.y*8.0) - t * 2.0);
         float chaos = fract(sin(i * 123.456 + t) * 987.654) * 0.1;
@@ -1145,8 +1173,8 @@ function updateEditor() {
 }
 
 function applyChaos() {
-    // ALEATORIEDADE COMPRIMIDA ACADÊMICA (142 TIPOS x INFINITOS KS)
-    document.getElementById('sld-type').value = Math.floor(Math.random() * 142);
+    // ALEATORIEDADE SUPREMA: MULTIVERSO MATEMÁTICO (145 TIPOS x INFINITOS KS)
+    document.getElementById('sld-type').value = Math.floor(Math.random() * 145);
     document.getElementById('sld-x').value = (Math.random() * 10).toFixed(1);
     document.getElementById('sld-y').value = (Math.random() * 10).toFixed(1);
     document.getElementById('sld-z').value = (Math.random() * 10).toFixed(1);

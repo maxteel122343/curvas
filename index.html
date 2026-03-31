@@ -628,7 +628,7 @@
 
         // APRIMORAMENTO 4: ENTROPIA (JITTER)
         float noise = fract(sin(i * 123.45) * 456.78) - 0.5;
-        pos += noise * pJitter;
+        pos += vec2(noise, noise * 1.2) * pJitter;
         
         // APRIMORAMENTO 5: CAUDA (TAIL FADE)
         float dragWeight = pow(i / max(pParticles, 1.0), pTai) * 20.0; 
@@ -746,6 +746,8 @@ let pSatBase = 1.3;
 let pTypeOverride = -1; // -1 significa evolução automática
 let pX = 1.0, pY = 1.0, pZ = 1.0;
 let pJitter = 0.0, pTwist = 0.0, pAb = 0.0;
+let pBre = 0.0, pHcy = 1.0, pSke = 1.0;
+let pDen = 1.0, pTai = 1.5, pZoo = 1.0;
 
 function updateEditor() {
     pRes = parseFloat(document.getElementById('sld-ps').value);

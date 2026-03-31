@@ -176,6 +176,36 @@
   .alchemy-btn.evolve:hover { background: rgba(0, 255, 170, 0.15); box-shadow: 0 4px 15px rgba(0, 255, 170, 0.2); }
   .alchemy-btn.harmonic { border-color: #00f2ff; }
   .alchemy-btn i { font-style: normal; font-size: 14px; }
+  
+  .prompt-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 12px;
+  }
+  .prompt-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    border-radius: 4px;
+    color: white;
+    padding: 8px 12px;
+    font-size: 12px;
+    outline: none;
+    transition: border 0.3s;
+  }
+  .prompt-input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(0, 242, 255, 0.2); }
+  .prompt-btn {
+    background: var(--primary);
+    border: none;
+    color: #000;
+    font-weight: 900;
+    padding: 0 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+  .prompt-btn:hover { background: #00d9e6; transform: scale(1.05); }
   .quality-option {
     margin: 15px 0;
     padding: 10px;
@@ -410,6 +440,11 @@
 </div>
 
 <div id="settings-panel" class="settings-panel">
+  <div class="prompt-row">
+    <input type="text" id="cosmic-prompt" class="prompt-input" placeholder="Peça algo à IA (ex: 'Algo calmo', 'Caótico')...">
+    <button class="prompt-btn" onclick="processCosmicPrompt()">IA</button>
+  </div>
+  
   <div class="alchemy-row">
     <button class="alchemy-btn chaos" onclick="applyChaos()"><i>🔴</i>Caos</button>
     <button class="alchemy-btn harmonic" onclick="applyHarmony()"><i>✨</i>Harmonia IA</button>
@@ -877,6 +912,59 @@ function applyEvolution() {
         el.value = (val + mutation);
     });
     updateEditor();
+}
+
+function processCosmicPrompt() {
+    const input = document.getElementById('cosmic-prompt');
+    const prompt = input.value.toLowerCase().trim();
+    if (!prompt) return;
+
+    // IA HEURÍSTICA: MAPEAMENTO DE INTENCIONALIDADE
+    let scores = { chaos: 0, calm: 0, math: 0, energy: 0, dark: 0 };
+    
+    // Pesquisa de palavras-chave (NLP Simples)
+    if (prompt.match(/caos|caos|caotico|maluco|explosao|agressivo|louco/)) scores.chaos += 2;
+    if (prompt.match(/calmo|zen|relaxante|suave|lento|sono|doce/)) scores.calm += 2;
+    if (prompt.match(/matematica|mandala|simetria|perfeito|fibonacci|geometria/)) scores.math += 2;
+    if (prompt.match(/fogo|energia|sol|quente|poder|plasma|eletrico/)) scores.energy += 2;
+    if (prompt.match(/vazio|negro|frio|escuro|vazio|fantasma|aura/)) scores.dark += 2;
+    if (prompt.match(/rapido|velocidade|flash|turbo/)) scores.energy += 1.5;
+
+    // Aplicar lógica baseada no score dominante
+    let target = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+
+    if (scores[target] === 0) { 
+        applyHarmony(); // Se não entender, usa harmonia padrão
+        input.placeholder = "IA processou... tente 'caótico' ou 'zen'";
+    } else {
+        if (target === 'chaos') {
+            applyChaos();
+            document.getElementById('sld-ps').value = 0.008;
+            document.getElementById('sld-ab').value = 1.2;
+        } else if (target === 'calm') {
+            document.getElementById('sld-ps').value = 0.002;
+            document.getElementById('sld-flow').value = 0.3;
+            document.getElementById('sld-spin').value = 0.2;
+            document.getElementById('sld-bre').value = 0.8;
+            document.getElementById('sld-tai').value = 6.0;
+            document.getElementById('sld-den').value = 0.4;
+        } else if (target === 'math') {
+            applyHarmony(); // Já usa PHI
+            document.getElementById('sld-den').value = 2.0;
+        } else if (target === 'energy') {
+            document.getElementById('sld-aura').value = 2.5;
+            document.getElementById('sld-spin').value = 2.5;
+            document.getElementById('sld-hcy').value = 3.5;
+        } else if (target === 'dark') {
+            document.getElementById('sld-aura').value = 0.5;
+            document.getElementById('sld-sat').value = 0.3;
+            document.getElementById('sld-tai').value = 2.5;
+            document.getElementById('sld-zoo').value = 1.8;
+        }
+        updateEditor();
+    }
+    input.value = "";
+    input.placeholder = "Pedido IA: " + prompt.substring(0, 15) + "...";
 }
 
 function toggleSettings() {

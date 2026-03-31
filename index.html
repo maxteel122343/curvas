@@ -275,7 +275,49 @@
   @media (max-width: 768px) {
       #score { font-size: 32px; }
       #minimap-container { width: 80px; height: 80px; bottom: 15px; left: 15px; }
+      #geo-hud { top: 10px; left: 10px; min-width: 120px; padding: 5px 8px; font-size: 10px; }
   }
+
+  /* GEOMETRY HUD */
+  #geo-hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    padding: 12px 18px;
+    border-radius: 14px;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    min-width: 200px;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  #geo-hud h4 {
+    margin: 0 0 8px 0;
+    font-size: 11px;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-bottom: 1px solid rgba(0,242,255,0.2);
+    padding-bottom: 4px;
+  }
+  .geo-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .geo-val {
+    font-weight: 800;
+    color: var(--primary);
+    text-shadow: 0 0 8px rgba(0,242,255,0.4);
+  }
+  .status-healthy { color: #00ffaa; }
+  .status-injured { color: #ff3366; }
 </style>
 </head>
 <body>
@@ -310,6 +352,14 @@
 <canvas></canvas>
 
 <div id="ui-layer">
+  <div id="geo-hud">
+    <h4>LABORATÓRIO GEOMÉTRICO</h4>
+    <div class="geo-row">CLASSE: <span id="hud-class" class="geo-val">-</span></div>
+    <div class="geo-row">TIPO: <span id="hud-type" class="geo-val">-</span></div>
+    <div class="geo-row">MASSA: <span id="hud-mass" class="geo-val">10</span></div>
+    <div class="geo-row">ESTADO: <span id="hud-status" class="geo-val status-healthy">SAUDÁVEL</span></div>
+    <div class="geo-row">VIBRAÇÃO: <span id="hud-speed" class="geo-val">0</span></div>
+  </div>
   <div class="hud-top">
     <div id="score">0</div>
     <div id="game-msg">SEGURE CLIQUE PARA DASH (Ataque/Fuga)</div>
@@ -810,12 +860,37 @@ function gameTick() {
         }
     }
 
-    if (myParticles >= 250) myCurve = 0;
-    else if (myParticles >= 180) myCurve = 3;
-    else if (myParticles >= 120) myCurve = 7;
-    else if (myParticles >= 70) myCurve = 8;
-    else if (myParticles >= 30) myCurve = 5;
-    else myCurve = 1;
+    // 9 ESCALAS DE EVOLUÇÃO MATEMÁTICA
+    const m = myParticles;
+    let name = "O VIAJANTE ZERO", cls = "PRIMORDIAL", curve = 1;
+
+    if (m >= 280) { name = "O SOBERANO"; cls = "SUPREMA"; curve = 0; }
+    else if (m >= 240) { name = "A ELEGANTE"; cls = "DIVINA"; curve = 3; }
+    else if (m >= 200) { name = "A ROBUSTA"; cls = "DIVINA"; curve = 7; }
+    else if (m >= 160) { name = "O TURBILHÃO"; cls = "GUERREIRA"; curve = 8; }
+    else if (m >= 130) { name = "A DUALIDADE"; cls = "GUERREIRA"; curve = 6; }
+    else if (m >= 100) { name = "O TREVO SUTIL"; cls = "VIAJANTE"; curve = 4; }
+    else if (m >= 70) { name = "O INFINITO"; cls = "VIAJANTE"; curve = 2; }
+    else if (m >= 35) { name = "A ESTRELA"; cls = "PRIMORDIAL"; curve = 5; }
+    else { name = "O VIAJANTE ZERO"; cls = "PRIMORDIAL"; curve = 1; }
+
+    myCurve = curve;
+
+    // Atualizar HUD Geométrico
+    document.getElementById('hud-class').textContent = cls;
+    document.getElementById('hud-type').textContent = name;
+    document.getElementById('hud-mass').textContent = Math.floor(m);
+    const speed = Math.sqrt(playerVelX*playerVelX + playerVelY*playerVelY) * 1000;
+    document.getElementById('hud-speed').textContent = Math.floor(speed);
+    
+    const statusEl = document.getElementById('hud-status');
+    if (myDamage > 0.1) {
+        statusEl.textContent = "FERIDO";
+        statusEl.className = "geo-val status-injured";
+    } else {
+        statusEl.textContent = "SAUDÁVEL";
+        statusEl.className = "geo-val status-healthy";
+    }
 
     // Progredir Explosões
     explosions = explosions.filter(e => {

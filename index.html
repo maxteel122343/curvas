@@ -761,7 +761,8 @@
     
     if (type >= 128 && type <= 143) { 
         // 128-143: Episiclos de Fourier Reais (4 harmônicos)
-        float f1 = 1.0; float f2 = floor(params.x * 5.0 + 2.0); float f3 = floor(params.y * 7.0 - 3.0); float f4 = floor(params.z * 11.0);
+        float n = float(type - 128); // 0 a 15
+        float f1 = 1.0; float f2 = floor(params.x * 5.0 + 2.0) + n*0.5; float f3 = floor(params.y * 7.0 - 3.0) + n; float f4 = floor(params.z * 11.0);
         float r1 = 0.2; float r2 = 0.1 * sin(t*0.5); float r3 = 0.05 * cos(t*0.2); float r4 = 0.025;
         vec2 p1 = vec2(r1 * cos(a * f1), r1 * sin(a * f1));
         vec2 p2 = vec2(r2 * cos(a * f2 + t), r2 * sin(a * f2 + t));
@@ -771,7 +772,8 @@
         
     } else if (type >= 144 && type <= 159) { 
         // 144-159: Nó de Lissajous 3D Projetado
-        float kx = params.x * 3.0 + 1.0; float ky = params.y * 4.0; float kz = params.z * 5.0;
+        float n = float(type - 144); // 0 a 15
+        float kx = params.x * 3.0 + 1.0 + n*0.2; float ky = params.y * 4.0 + n*0.5; float kz = params.z * 5.0 + n*0.3;
         float x3d = 0.3 * sin(a * kx + t);
         float y3d = 0.3 * sin(a * ky + t * 1.5);
         float z3d = 0.3 * sin(a * kz);
@@ -780,18 +782,18 @@
         
     } else if (type >= 160 && type <= 175) { 
         // 160-175: Op-Art de Penrose (Simetria de Rotação Quebrada Quíntupla)
-        float angle = a * 5.0;
-        float dist = aa;
+        float n = float(type - 160); // 0 a 15
+        float angle = a * (5.0 + n*0.5); // Muda o número de pontas da estrela
         float pentagon = cos(angle) + cos(2.0 * angle) * params.x;
         float r = 0.4 * aa * (1.0 + 0.3 * sin(pentagon * 10.0 - t * 3.0));
         pos = vec2(r * cos(a + t*params.y), r * sin(a + t*params.z));
         
     } else { 
         // 176-191: Campo Magnético Hipnótico
+        float n = float(type - 176); // 0 a 15
         float r = aa * 0.5;
-        // Equação de linha de campo dipolo magnético
-        float theta = a * params.x * 10.0;
-        float B = 0.4 * pow(sin(theta), 2.0) / (r + 0.1) * sin(t - r*10.0);
+        float theta = a * (params.x * 10.0 + n); // Aumenta a densidade do campo magnético
+        float B = 0.4 * pow(sin(theta), 2.0) / (r + 0.1) * sin(t - r*(10.0 + n*2.0));
         pos = vec2(B * cos(a), B * sin(a));
     }
     return pos;
@@ -805,54 +807,49 @@
     
     if (type >= 192 && type <= 207) { 
         // 192-207: Manchas de Turing (Interferência de Ondas de Difusão)
+        float n = float(type - 192); // 0 a 15
         vec2 p = vec2(cos(a)*aa, sin(a)*aa);
-        float d1 = sin(p.x * 20.0 * params.x + t) + sin(p.y * 20.0 * params.x + t);
-        float d2 = sin(p.x * 15.0 * params.y - t) + cos(p.y * 15.0 * params.y - t);
+        float d1 = sin(p.x * (20.0 + n) * params.x + t) + sin(p.y * (20.0 + n) * params.x + t);
+        float d2 = sin(p.x * (15.0 + n) * params.y - t) + cos(p.y * (15.0 + n) * params.y - t);
         float turing = smoothstep(0.0, 1.0, abs(d1 + d2));
         float r = 0.4 * aa * (0.8 + 0.3 * turing);
         pos = vec2(r * cos(a), r * sin(a));
         
     } else if (type >= 208 && type <= 223) { 
         // 208-223: Campo Vetorial de Vórtice Puro (Navier-Stokes Rotacional)
+        float n = float(type - 208); // 0 a 15
         float r = aa * 0.4;
-        // Velocidade angular inversamente proporcional ao raio (com limite)
-        float omega = params.x * 2.0 / (r * r + 0.05);
+        float omega = (params.x * 2.0 + n*0.5) / (r * r + 0.05); // Intensidade e tamanho do vórtice muda por ID
         float swirlAngle = a + omega * sin(t)*0.5;
-        // Perturbação turbulenta nas bordas
-        float turb = 0.05 * sin(swirlAngle * 10.0 * params.y + t * 5.0) * aa;
+        float turb = 0.05 * sin(swirlAngle * (10.0 + n) * params.y + t * 5.0) * aa;
         pos = vec2((r+turb) * cos(swirlAngle), (r+turb) * sin(swirlAngle));
         
     } else if (type >= 224 && type <= 239) { 
         // 224-239: Pseudo-esfera de Beltrami (Geometria Hiperbólica)
-        // Mapeando a reta real para a pseudo-esfera
-        float v = (aa - 0.5) * 4.0; // -2 a 2
-        float u = a * params.x * 3.0;
+        float n = float(type - 224); // 0 a 15
+        float v = (aa - 0.5) * (4.0 + n*0.2); // Expande os limites da hiperbole
+        float u = a * (params.x * 3.0 + n*0.5); // Adiciona voltas na tractriz
         
-        // Fórmulas manuais para cosh e tanh em GLSL 1.0
-        float e_v = exp(v);
-        float e_minus_v = exp(-v);
+        float e_v = exp(v); float e_minus_v = exp(-v);
         float my_cosh = (e_v + e_minus_v) * 0.5;
         float my_tanh = (e_v - e_minus_v) / (my_cosh * 2.0 + 0.0001);
         
-        // Parametrização clássica da tractriz
         float r_beltrami = 0.3 * 1.0 / my_cosh;
         float z_beltrami = 0.3 * (v - my_tanh) * sin(t); 
-        // Projeção polar
         pos = vec2(r_beltrami * cos(u - t), r_beltrami * sin(u - t)) + vec2(0.0, z_beltrami*params.y);
         
     } else if (type >= 240 && type <= 254) { 
         // 240-254: Campo Quântico Escalar (Mar de Dirac)
-        float freq = params.x * 50.0;
-        float q1 = fract(sin(dot(vec2(a, aa), vec2(12.9898, 78.233))) * 43758.5453);
-        float q2 = fract(cos(dot(vec2(a, t), vec2(39.346, 11.135))) * 43758.5453);
-        // Oscilador harmônico quântico
-        float prob = (q1 + q2) * 0.5 * exp(-aa * 3.0);
+        float n = float(type - 240); // 0 a 14
+        float freq = params.x * (50.0 + n*5.0); // Frequencia dos "elétrons" muda drasticamente
+        float q1 = fract(sin(dot(vec2(a, aa), vec2(12.9898 + n, 78.233))) * 43758.5453);
+        float q2 = fract(cos(dot(vec2(a, t), vec2(39.346, 11.135 + n))) * 43758.5453);
+        float prob = (q1 + q2) * 0.5 * exp(-aa * (3.0 - n*0.1));
         float r = 0.5 * pow(prob, 0.5) * params.z;
         pos = vec2(r * cos(a * freq + t), r * sin(a * freq - t));
         
     } else { 
         // type 255: A MATRIZ DO ONIVERSO (Singularidade Hipercúbica)
-        // Funde todas as dimensões geométricas em um tecido pulsante
         float r = 0.3 * abs(sin(a * floor(params.x*5.0) + t));
         float fold = cos(a * floor(params.y*8.0) - t * 2.0);
         float chaos = fract(sin(i * 123.456 + t) * 987.654) * 0.1;

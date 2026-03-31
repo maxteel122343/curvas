@@ -29,7 +29,7 @@
   #overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at center, rgba(10, 10, 25, 0.8) 0%, #000 100%);
+    background: radial-gradient(circle at center, rgba(10, 10, 25, 0.1) 0%, rgba(0, 0, 0, 0.95) 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -435,19 +435,16 @@
 <div id="overlay">
   <div class="login-card">
     <h1 style="font-size: 32px; letter-spacing: 4px; margin-bottom: 0;">MATRIZ UNIVERSAL</h1>
-    <p class="subtitle-login" style="color: var(--primary); letter-spacing: 2px;">Laboratório Geométrico v4.0</p>
+    <p class="subtitle-login" style="color: var(--primary); letter-spacing: 2px;">Laboratório Geométrico v4.5</p>
     
-    <div style="text-align: left; padding: 15px; margin: 20px 0; background: rgba(0,242,255,0.05); border: 1px solid rgba(0,242,255,0.2); border-radius: 8px; font-size: 11px; line-height: 1.6; color: #ccc;">
-      <strong style="color: #fff; font-size: 13px; text-transform: uppercase;">O que é este projeto?</strong><br>
-      Uma simulação gráfica massiva calculada diretamente na GPU do seu navegador. O motor <i>Shader</i> utiliza uma <b>Busca Binária</b> para renderizar <b>256 espécimes matemáticos em tempo real (60fps)</b>.<br><br>
-      
-      <span style="color: #00ffaa;">• 256 Dimensões:</span> De órbitas clássicas a Reações Químicas (Turing), Fluidos de Navier-Stokes e Geometria Hiperbólica.<br>
-      <span style="color: var(--primary);">• IA Prompt:</span> Digite o que quiser ("caos", "botânica") e a IA configurará a equação perfeita no painel lateral.<br>
-      <span style="color: #ff3366;">• Multiplayer (Sobrevivência):</span> Colete fótons, aumente sua massa geométrica e abata outros jogadores usando DASH.<br>
+    <div id="login-curve-preview" style="text-align: center; margin: 15px auto; padding: 15px; border: 2px dashed rgba(0,242,255,0.3); border-radius: 50%; width: 160px; height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 50px rgba(0,242,255,0.1) inset, 0 0 30px rgba(0,0,0,0.8); cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; background: rgba(0,0,0,0.2); backdrop-filter: blur(0px);" onclick="randomizeSpawnCurve()" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='var(--primary)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(0,242,255,0.3)';">
+       <span style="font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Seu Avatar Numérico</span>
+       <strong id="preview-curve-name" style="color: #00ffaa; font-size: 11px; margin-top: 20px; margin-bottom: 20px; line-height: 1.4; text-transform: uppercase; text-shadow: 0 0 10px rgba(0,255,170,0.5);">Sorteando...</strong>
+       <span style="font-size: 9px; color: #ff3366; text-transform: uppercase; border: 1px solid #ff3366; padding: 4px 10px; border-radius: 12px; transition: 0.2s;">Clique p/ Mudar</span>
     </div>
 
     <input type="text" id="username" placeholder="Digite seu nome (Opcional)..." maxlength="12" style="background: rgba(255,255,255,0.05); text-align: center;">
-    <button class="start-btn" onclick="startGame()" style="margin-top: 15px; letter-spacing: 2px;">INICIAR SIMULAÇÃO</button>
+    <button class="start-btn" onclick="startGame()" style="margin-top: 10px; letter-spacing: 2px;">INICIAR SIMULAÇÃO</button>
   </div>
 </div>
 
@@ -1552,19 +1549,58 @@ async function startGame() {
     document.getElementById('overlay').classList.add('hidden');
     document.getElementById('ui-layer').style.display = 'block';
     
-    // RESETAR ESTADO INICIAL PARA EVITAR TELA PRETA (NaN)
+    // RESETAR ESTADO INICIAL DO JOGO
     playerX = 0; playerY = 0;
     playerVelX = 0; playerVelY = 0;
     lastTime = performance.now();
     startTime = Date.now();
 
-    myCurve = Math.floor(Math.random() * 10);
-    initWebGL();
+    myParticles = 10; // Reseta o avatar pra minúsculo no início
+    myCurve = pTypeOverride; // Guarda o gerado pelo sorteio
+    document.getElementById('sld-mass').value = 10;
+
+    others = {}; // Deleta os fantasmas de fundo
     initMultiplayer();
     window.addEventListener('mousedown', (e) => { if(e.button === 0 || e.button === 2) isDashing = true; });
     window.addEventListener('mouseup', () => isDashing = false);
     window.addEventListener('contextmenu', e => e.preventDefault());
     isPlaying = true;
+}
+
+window.onload = () => {
+    initWebGL();
+    randomizeSpawnCurve();
+    
+    // Injetar fantasmas viajantes no fundo (Screen Saver)
+    for(let i=0; i<15; i++) {
+        others['ghost_'+i] = {
+            x: (Math.random()*6 - 3),
+            y: (Math.random()*6 - 3),
+            vx: (Math.random()*0.02 - 0.01),
+            vy: (Math.random()*0.02 - 0.01),
+            c: Math.floor(Math.random() * 63),
+            p: 20 + Math.random() * 100,
+            d: 0,
+            g: Math.random() * 1.5,
+            h: 0.5
+        };
+    }
+};
+
+function randomizeSpawnCurve() {
+    let rand = Math.floor(Math.random() * 148);
+    while (rand >= 79 && rand <= 127) { rand = Math.floor(Math.random() * 148); } // Pula zona fantasma chata
+    pTypeOverride = rand;
+    myCurve = rand;
+    myParticles = 120; // Deixa o preview GIGANTE E BRILHANTE na tela inicial!
+    let meta = getCurveMeta(rand);
+    
+    document.getElementById('sld-type').value = rand;
+    
+    const el = document.getElementById('preview-curve-name');
+    if (el) el.innerHTML = meta.name + "<br><small style='color:rgba(255,255,255,0.4); font-size:8px; margin-top:4px; display:block;'>Familia: "+meta.family+"</small>";
+    
+    if (typeof updateEditor === "function") updateEditor();
 }
 
 function initWebGL() {
@@ -1926,6 +1962,8 @@ function render(now = 0) {
     if (isPlaying) gameTick();
     if (pTypeOverride !== -1) myCurve = pTypeOverride; // SOBRESCREVE SE MANUAL
 
+
+
     gl.useProgram(program);
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1945,12 +1983,29 @@ function render(now = 0) {
     gl.uniform1f(gl.getUniformLocation(program, 'pTai'), pTai);
     gl.uniform1f(gl.getUniformLocation(program, 'uZoom'), pZoo);
     gl.uniform1f(uPPow, pPow);
+    // LÓGICA DE PREVIEW (MOUSE EFFECT / PARALLAX NA TELA DE LOGIN)
+    let renderPx = 0, renderPy = 0;
+    if (!isPlaying) {
+        renderPx = -mouseX * 0.5; // O avatar segue o mouse sutilmente
+        renderPy = -mouseY * 0.5;
+        
+        // Simular movimento dos fantasmas (background menu)
+        for (let id in others) {
+            let o = others[id];
+            o.x += o.vx; o.y += o.vy;
+            if (o.x > 3.0) o.x = -3.0; if (o.x < -3.0) o.x = 3.0;
+            if (o.y > 3.0) o.y = -3.0; if (o.y < -3.0) o.y = 3.0;
+        }
+    }
+
     gl.uniform1f(uPK, pK);
     gl.uniform1f(gl.getUniformLocation(program, 'pW'), pW);
     gl.uniform3f(gl.getUniformLocation(program, 'pColor'), pColor[0], pColor[1], pColor[2]);
     gl.uniform1f(uPFlo, pFlo);
+    
     gl.uniform2f(uCameraPos, playerX, playerY);
-    gl.uniform2f(uPPos, 0, 0); gl.uniform2f(uPVel, playerVelX, playerVelY);
+    gl.uniform2f(uPPos, renderPx, renderPy); 
+    gl.uniform2f(uPVel, playerVelX, playerVelY);
     gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);
     gl.uniform1f(uPDamage, myDamage);
     gl.uniform1f(uPGlow, myGlow);

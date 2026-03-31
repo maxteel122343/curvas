@@ -122,13 +122,13 @@
   }
   .settings-btn:hover { background: rgba(255,255,255,0.15); }
   
-  #settings-panel {
+  #creative-lab {
     position: fixed !important;
     top: 10px !important; 
     right: 10px !important;
-    left: auto !important; /* GARANTE QUE NÃO VOLTE PARA O MEIO */
+    left: auto !important;
     transform: none !important;
-    background: rgba(0,0,0,0.1) !important; /* QUASE INVISÍVEL */
+    background: rgba(0,0,0,0.1) !important; 
     backdrop-filter: blur(5px) !important;
     padding: 15px !important;
     z-index: 3000 !important;
@@ -136,10 +136,12 @@
     width: 260px !important; 
     max-height: 95vh !important; 
     overflow-y: auto !important;
-    border: none !important; /* REMOVE BORDA */
+    border: none !important;
     box-shadow: none !important;
     pointer-events: auto !important;
   }
+  #creative-lab.active { display: block !important; }
+  .creative-lab h2 { margin-top: 0; font-size: 1.2rem; text-transform: uppercase; color: var(--primary); }
   .alchemy-row {
     display: flex;
     gap: 5px;
@@ -439,7 +441,7 @@
   </div>
 </div>
 
-<div id="settings-panel" class="settings-panel">
+<div id="creative-lab" class="creative-lab">
   <div class="prompt-row">
     <input type="text" id="cosmic-prompt" class="prompt-input" placeholder="Peça algo à IA (ex: 'Algo calmo', 'Caótico')...">
     <button class="prompt-btn" onclick="processCosmicPrompt()">IA</button>
@@ -968,7 +970,7 @@ function processCosmicPrompt() {
 }
 
 function toggleSettings() {
-    const p = document.getElementById('settings-panel');
+    const p = document.getElementById('creative-lab');
     p.classList.toggle('active');
 }
 

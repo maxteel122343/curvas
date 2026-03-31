@@ -950,7 +950,10 @@
     float sizeFactor = pParticles / 300.0;
     float weaknessPenalty = (1.0 - pDamage * 0.8);
     float localSat = saturation * (0.5 + 0.5 * sizeFactor) * weaknessPenalty + pGlow;
-    float localBri = (brightness * (0.5 + 0.5 * sizeFactor) + pGlow * 1.5) * weaknessPenalty;
+    
+    // BALANCEAMENTO TERMODINÂMICO DE LUZ: Atenua o brilho aditivo em altas densidades
+    float baseBri = (brightness * (0.5 + 0.5 * sizeFactor) + pGlow * 1.5) * weaknessPenalty;
+    float localBri = baseBri / (1.0 + sizeFactor * 3.5); // Divide o brilho por até 4.5x quando tem 300 partículas
     
     for(float i = 0.0; i < 300.0; i++) {
         if (i >= pParticles) break;
@@ -1001,7 +1004,8 @@
         float oWeak = 1.0 - otherDamage[k] * 0.8;
         float oGL = otherGlow[k];
         float oSat = saturation * (0.5 + 0.5 * oSizeFactor) * 0.7 * oWeak + oGL;
-        float oBri = (brightness * (0.5 + 0.5 * oSizeFactor) + oGL * 1.5) * oWeak;
+        float oBaseBri = (brightness * (0.5 + 0.5 * oSizeFactor) + oGL * 1.5) * oWeak;
+        float oBri = oBaseBri / (1.0 + oSizeFactor * 3.5); // Atenua supernovas inimigas
         
         float maxP = min(oPart, otherLimit); 
         for(float i = 0.0; i < 60.0; i++) {

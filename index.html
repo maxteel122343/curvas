@@ -775,7 +775,7 @@ function gameTick() {
         let d = Math.sqrt((playerX - f.x)**2 + (playerY - f.y)**2);
         if (d < catchRadius) {
             score++; document.getElementById('score').textContent = score;
-            if (myParticles < MAX_PARTICLES) myParticles += 5;
+            if (myParticles < MAX_PARTICLES) myParticles += 1.0; // GANHA APENAS 1 DE MASSA
             myGlow = Math.min(1.2, myGlow + 0.4); // Brilho de alimentação!
             myDamage = 0; // CURA IMEDIATA DO MOVIMENTO E BRILHO
             channel.send({ type: 'broadcast', event: 'eat', payload: { index: idx } });
@@ -795,7 +795,7 @@ function gameTick() {
         if (d < catchRadius * 1.5) {
             let drainAmt = (distToHeart < 0.15) ? 5.0 : 0.8;
             channel.send({ type: 'broadcast', event: 'drain', payload: { target: id, attacker: myName, amt: drainAmt } });
-            if (myParticles < MAX_PARTICLES) myParticles += (distToHeart < 0.15 ? 2.0 : 0.5);
+            if (myParticles < MAX_PARTICLES) myParticles += 1.0; // GANHA APENAS 1 DE MASSA (MESMO NO CORAÇÃO)
             myGlow = Math.min(1.2, myGlow + 0.04);
             score += 1;
             document.getElementById('score').textContent = score;
@@ -804,7 +804,7 @@ function gameTick() {
 
         if (d < catchRadius * 1.5 && isDashing && (playerVelX*playerVelX + playerVelY*playerVelY) > 0.0001) {
             channel.send({ type: 'broadcast', event: 'hit', payload: { target: id, attacker: myName } });
-            if (myParticles < MAX_PARTICLES) myParticles += 20;
+            if (myParticles < MAX_PARTICLES) myParticles += 1.0; // GANHA APENAS 1 DE MASSA NO GOLPE
             score += 15; document.getElementById('score').textContent = score;
             isDashing = false; dashEnergy = Math.max(0, dashEnergy - 30);
         }

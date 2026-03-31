@@ -229,6 +229,31 @@
       background: linear-gradient(to right, var(--accent), var(--primary));
       transition: width 0.1s;
   }
+
+  /* MINIMAP - ESTÉTICA GLASS */
+  #minimap-container {
+      position: absolute;
+      bottom: 25px;
+      left: 25px;
+      width: 140px;
+      height: 140px;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(0, 242, 255, 0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+      pointer-events: none;
+  }
+  #minimap-canvas {
+      width: 100%;
+      height: 100%;
+  }
+
+  @media (max-width: 768px) {
+      #score { font-size: 32px; }
+      #minimap-container { width: 80px; height: 80px; bottom: 15px; left: 15px; }
+  }
 </style>
 </head>
 <body>
@@ -268,6 +293,9 @@
     <div id="game-msg">SEGURE CLIQUE PARA DASH (Ataque/Fuga)</div>
   </div>
   <div id="dash-bar"><div id="dash-fill"></div></div>
+  <div id="minimap-container">
+    <canvas id="minimap-canvas" width="140" height="140"></canvas>
+  </div>
   <div class="players-list" id="playersList">
     <h3>VIAJANTES</h3>
     <div id="playersItems"></div>
@@ -402,6 +430,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let gl, program;
+let minimapCanvas, minimapCtx;
 let startTime, lastTime = 0;
 let myName = "Anon";
 let isPlaying = false;
@@ -429,6 +458,7 @@ const MAP_SIZE = 8.0;
 let others = {}; 
 let foods = [];   
 let channel;
+let lastPlayersMass = {};
 
 let uTime, uRes, uSat, uBri, uOtherLimit, uCameraPos, uPDamage, uPGlow;
 let uPPos, uPVel, uPCurve, uPPart;
@@ -503,6 +533,11 @@ function initWebGL() {
     uOtherDamage = gl.getUniformLocation(program, 'otherDamage');
     uPGlow = gl.getUniformLocation(program, 'pGlow');
     uOtherGlow = gl.getUniformLocation(program, 'otherGlow');
+    
+    // Minimap Init
+    minimapCanvas = document.getElementById('minimap-canvas');
+    if (minimapCanvas) minimapCtx = minimapCanvas.getContext('2d');
+    
     startTime = Date.now();
     resize();
     window.addEventListener('resize', resize);
@@ -518,8 +553,20 @@ function initMultiplayer() {
     channel = supabaseClient.channel('war_room', { config: { presence: { key: myName } } });
     channel
     .on('presence', { event: 'sync' }, () => { updatePlayersList(channel.presenceState()); })
-    .on('presence', { event: 'leave' }, ({ leftPresences }) => { if(leftPresences) leftPresences.forEach(p => delete others[p.key]); })
-    .on('broadcast', { event: 'pos' }, ({ payload }) => { if (payload.id !== myName) others[payload.id] = payload; })
+    .on('presence', { event: 'leave' }, ({ leftPresences }) => { 
+        if(leftPresences) {
+            leftPresences.forEach(p => {
+                delete others[p.key];
+            });
+        }
+        updatePlayersList(channel.presenceState()); 
+    })
+    .on('broadcast', { event: 'pos' }, ({ payload }) => { 
+        if (payload.id !== myName) {
+            payload.lastSeen = Date.now(); // Lógica anti-fantasma
+            others[payload.id] = payload; 
+        }
+    })
     .on('broadcast', { event: 'eat' }, ({ payload }) => { if (isHost()) respawnFood(payload.index); })
     .on('broadcast', { event: 'hit' }, ({ payload }) => {
         if (payload.target === myName) {
@@ -571,13 +618,40 @@ function showMsg(txt) {
 
 function updatePlayersList(presenceState) {
     const listDiv = document.getElementById('playersItems');
-    listDiv.innerHTML = '';
-    Object.keys(presenceState).forEach(key => {
-        const div = document.createElement('div');
-        div.className = 'player-item' + (key === myName ? ' self' : '');
-        div.innerHTML = `<span>${key}</span>`;
-        listDiv.appendChild(div);
-    });
+    if (!listDiv) return;
+    
+    // Limpar GHOSTS (jogadores inativos)
+    const activeNames = Object.keys(presenceState);
+    const now = Date.now();
+
+    const playersArr = activeNames.map(key => {
+        let s = 0, m = 0;
+        if (key === myName) {
+            s = score; m = myParticles;
+        } else if (others[key]) {
+            s = others[key].s || 0;
+            m = others[key].p || 0;
+        } else {
+            const p = presenceState[key][0];
+            s = p.score || 0;
+            m = p.p || 0;
+        }
+        return { name: key, score: s, mass: Math.floor(m) };
+    }).filter(p => {
+        if (p.name === myName) return true;
+        return (others[p.name] && (now - others[p.name].lastSeen < 4000));
+    }).sort((a, b) => b.score - a.score);
+
+    const newItems = playersArr.map(p => `
+        <div class="player-item ${p.name === myName ? 'self' : ''}">
+            <span class="p-name">${p.name}</span>
+            <span class="p-info" style="font-size:11px; margin-left:10px; color:rgba(255,255,255,0.7)">
+                ${p.score} | <small>${p.mass} esfera</small>
+            </span>
+        </div>
+    `).join('');
+
+    listDiv.innerHTML = newItems;
 }
 
 function isHost() {
@@ -699,7 +773,56 @@ function render(now = 0) {
         gl.uniform1f(gl.getUniformLocation(program, `foodHue[${i}]`), f.hue);
     });
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    
+    drawMinimap();
     requestAnimationFrame(render);
+}
+
+function drawMinimap() {
+    if (!minimapCtx) return;
+    const ctx = minimapCtx;
+    const w = 140, h = 140;
+    ctx.clearRect(0, 0, w, h);
+    
+    // Desenhar Borda Sutil
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.strokeRect(2, 2, w-4, h-4);
+
+    // 1. Food (Pequenos pontos)
+    foods.forEach(f => {
+        if (f.x === -999) return;
+        const mx = (f.x / MAP_SIZE + 1) * 0.5 * w;
+        const my = (1.0 - (f.y / MAP_SIZE + 1) * 0.5) * h;
+        ctx.fillStyle = `hsl(${f.hue * 180 / Math.PI}, 100%, 50%)`;
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(mx - 0.5, my - 0.5, 1.5, 1.5);
+    });
+
+    // 2. Others (Pink neon)
+    ctx.globalAlpha = 1.0;
+    for (let id in others) {
+        let o = others[id];
+        if (o.p < 5) continue;
+        const mx = (o.x / MAP_SIZE + 1) * 0.5 * w;
+        const my = (1.0 - (o.y / MAP_SIZE + 1) * 0.5) * h;
+        ctx.fillStyle = '#ff00ea';
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = '#ff00ea';
+        ctx.beginPath();
+        ctx.arc(mx, my, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // 3. Self (Cyan neon)
+    const sx = (playerX / MAP_SIZE + 1) * 0.5 * w;
+    const sy = (1.0 - (playerY / MAP_SIZE + 1) * 0.5) * h;
+    ctx.fillStyle = '#00f2ff';
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = '#00f2ff';
+    ctx.beginPath();
+    ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
 }
 
 function resize() {

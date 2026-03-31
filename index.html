@@ -471,7 +471,7 @@
     <h3>Laboratório Criativo</h3>
     <div class="slider-row">
       <label>TIPO DE CURVA (FORÇAR) <span id="val-type">5</span></label>
-      <input type="range" min="0" max="12" step="1" value="5" id="sld-type" oninput="updateEditor()">
+      <input type="range" min="0" max="15" step="1" value="5" id="sld-type" oninput="updateEditor()">
     </div>
     <div class="slider-row" style="display:flex; justify-content:space-between; gap:5px;">
       <div style="flex:1">
@@ -659,6 +659,22 @@
         float a = i / max(pCount, 1.0) * PI * 10.0 + t;
         float z = sin(a * 0.3 * params.z);
         pos = vec2((0.3 + 0.1 * z) * cos(a * params.x), (0.1 * z + 0.2) * sin(a * params.y));
+    }
+    else if (type == 13) { // BURACO DE MINHOCA (Inversão)
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        float r = 1.0 / (1.5 + 0.8 * sin(a * params.x + t));
+        pos = vec2(r * cos(a * params.y), r * sin(a * params.z));
+    }
+    else if (type == 14) { // ESTRELA DE NÊUTRONS (Spikes)
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float r = 0.3 * pow(abs(sin(a * params.x + t)), 0.2);
+        pos = vec2(r * sin(a * params.y + t), r * cos(a * params.z + t));
+    }
+    else if (type == 15) { // CIBER-GLITCH (Digital)
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float r = 0.4;
+        vec2 p = vec2(r * cos(a * params.x + floor(t*2.0)), r * sin(a * params.y + floor(t*2.0)));
+        pos = floor(p * 15.0) / 15.0; // Efeito pixelado
     }
     return pos;
   }

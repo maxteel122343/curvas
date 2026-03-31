@@ -471,7 +471,7 @@
     <h3>Laboratório Criativo</h3>
     <div class="slider-row">
       <label>TIPO DE CURVA (FORÇAR) <span id="val-type">5</span></label>
-      <input type="range" min="0" max="15" step="1" value="5" id="sld-type" oninput="updateEditor()">
+      <input type="range" min="0" max="31" step="1" value="5" id="sld-type" oninput="updateEditor()">
     </div>
     <div class="slider-row" style="display:flex; justify-content:space-between; gap:5px;">
       <div style="flex:1">
@@ -685,6 +685,88 @@
         float r = 0.4;
         vec2 p = vec2(r * cos(a * params.x + floor(t*2.0)), r * sin(a * params.y + floor(t*2.0)));
         pos = floor(p * pFlo) / pFlo; // Efeito pixelado controlado
+    }
+    else if (type == 16) { // SUPER-FORMULA (Biodiversidade)
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float r = pow(pow(abs(cos(params.x * a / 4.0)), params.y) + pow(abs(sin(params.x * a / 4.0)), params.z), -1.0/pPow);
+        pos = vec2(r * cos(a + t), r * sin(a + t)) * 0.3;
+    }
+    else if (type == 17) { // BORBOLETA (Temple Fay)
+        float a = i / max(pCount, 1.0) * PI * 4.0 + t;
+        float r = exp(cos(a)) - 2.0*cos(4.0*a) + pow(sin(a/12.0), 5.0);
+        pos = vec2(r * sin(a), r * cos(a)) * 0.1 * params.x;
+    }
+    else if (type == 18) { // INFINITO (Lemniscate)
+        float a = (i / max(pCount, 1.0) - 0.5) * PI;
+        float r = 0.5 * sqrt(abs(cos(2.0 * a * params.x)));
+        pos = vec2(r * cos(a + t), r * sin(a + t) * params.y);
+    }
+    else if (type == 19) { // ESPIRÓGRAFO REAL (Hypotrochoid)
+        float a = i / max(pCount, 1.0) * PI * 10.0 + t;
+        float R = 0.5, rr = 0.2, d = 0.15 * params.z;
+        pos = vec2((R-rr)*cos(a) + d*cos((R-rr)*a/rr), (R-rr)*sin(a) - d*sin((R-rr)*a/rr));
+    }
+    else if (type == 20) { // GALÁXIA LOGARÍTMICA
+        float a = i / max(pCount, 1.0) * PI * 15.0 + t;
+        float r = 0.05 * exp(0.15 * a * params.x);
+        pos = vec2(r * cos(a), r * sin(a)) / (1.0 + r*2.0);
+    }
+    else if (type == 12) { // DNA HÉLICE 3D
+        float a = i / max(pCount, 1.0) * PI * 10.0 + t;
+        float z = sin(a * 0.3 * params.z);
+        pos = vec2((0.3 + 0.1 * z) * cos(a * params.x), (0.1 * z + 0.2) * sin(a * params.y));
+    }
+    else if (type == 21) { // CORAÇÃO (Cardioide)
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float r = 0.3 * (1.0 - sin(a + t)) * params.x;
+        pos = vec2(r * cos(a), r * sin(a));
+    }
+    else if (type == 22) { // ZIG-ZAG RADIAL
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        float r = 0.3 + 0.1 * sign(sin(a * params.x));
+        pos = vec2(r * cos(a), r * sin(a));
+    }
+    else if (type == 23) { // PULSAR CRÍTICO (Square Wave)
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float r = 0.1 + 0.3 * (abs(sin(t)) > 0.5 ? 1.0 : 0.5);
+        pos = vec2(r * cos(a*params.x + t), r * sin(a*params.y + t));
+    }
+    else if (type == 24) { // TORO PROJETADO (Donut)
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float b = t * 0.5;
+        float R = 0.3, rr = 0.1;
+        pos = vec2((R + rr*cos(a*params.x)) * cos(a + b), rr*sin(a*params.y));
+    }
+    else if (type == 25) { // NÓ TREVO (Knot)
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        pos = vec2(sin(a) + 2.0*sin(2.0*a), cos(a) - 2.0*cos(2.0*a)) * 0.1 * params.x;
+    }
+    else if (type == 26) { // ASTEROIDE
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        pos = vec2(pow(cos(a*params.x), 3.0), pow(sin(a*params.y), 3.0)) * 0.4;
+    }
+    else if (type == 27) { // NEBULOSA SPARSA (Noise)
+        float id = i + floor(t*10.0);
+        pos = (hash21(id) - 0.5) * 0.8 * params.x;
+    }
+    else if (type == 28) { // CASCATA DE ONDAS
+        float a = (i / max(pCount, 1.0)) * 2.0 - 1.0;
+        pos = vec2(a * 0.8, 0.2 * sin(a * 10.0 * params.x + t) * cos(a * 5.0 * params.y));
+    }
+    else if (type == 29) { // ÓRBITAS DUPLAS
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        float r = (mod(i, 2.0) > 0.5) ? 0.4 : 0.2;
+        pos = vec2(r * cos(a * params.x), r * sin(a * params.y));
+    }
+    else if (type == 30) { // ESPIRAL DE ARQUIMEDES
+        float a = i / max(pCount, 1.0) * PI * 20.0 + t;
+        float r = 0.02 * a * params.x;
+        pos = vec2(r * cos(a), r * sin(a)) / (1.0 + r);
+    }
+    else if (type == 31) { // BLACK HOLE (Event Horizon)
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        float r = 0.5 * (1.0 - 0.5 / (1.0 + abs(sin(t))));
+        pos = vec2(r * cos(a * params.x), r * sin(a * params.y));
     }
     return pos;
   }
@@ -931,7 +1013,10 @@ function applyHarmony() {
         { type: 11, x: 12.0, y: 1.0, z: 1.0, jit: 0, twi: 0, ab: 0.1, bre: 1.5, den: 1.0, tai: 3.0, pow: 0.2, flo: 10.0 },  // Estrela de Pulsar
         { type: 12, x: 1.0, y: 1.0, z: 2.0, jit: 0.01, twi: 0, ab: 0.3, bre: 0.5, den: 0.8, tai: 2.0, pow: 0.5, flo: 20.0 }, // Hélice DNA
         { type: 14, x: 8.0, y: 1.0, z: 1.0, jit: 0, twi: 0.5, ab: 1.0, bre: 0.2, den: 0.4, tai: 1.0, pow: 1.8, flo: 40.0 },  // Agulha Estelar
-        { type: 15, x: 4.0, y: 4.0, z: 4.0, jit: 0.02, twi: 0, ab: 0.5, bre: 0, den: 1.0, tai: 0.5, pow: 0.5, flo: 8.0 }     // Glitch Arte
+        { type: 15, x: 4.0, y: 4.0, z: 4.0, jit: 0.02, twi: 0, ab: 0.5, bre: 0, den: 1.0, tai: 0.5, pow: 0.5, flo: 8.0 },    // Glitch Arte
+        { type: 17, x: 1.2, y: 1.0, z: 1.0, jit: 0, twi: 0, ab: 0.2, bre: 1.0, den: 0.8, tai: 1.0, pow: 0.5, flo: 20.0 },   // Borboleta Cósmica
+        { type: 24, x: 3.0, y: 1.0, z: 1.0, jit: 0, twi: 0.2, ab: 0.3, bre: 0.5, den: 1.2, tai: 2.0, pow: 0.5, flo: 30.0 }, // Donut Espacial
+        { type: 27, x: 1.5, y: 1.0, z: 1.0, jit: 0.05, twi: 0, ab: 0.8, bre: 0, den: 2.0, tai: 0.0, pow: 0.5, flo: 10.0 }   // Nebulosa Atômica
     ];
     
     const picked = archetypes[Math.floor(Math.random() * archetypes.length)];

@@ -390,6 +390,24 @@
   <div class="editor-group">
     <h3>Laboratório Criativo</h3>
     <div class="slider-row">
+      <label>TIPO DE CURVA (FORÇAR) <span id="val-type">5</span></label>
+      <input type="range" min="0" max="8" step="1" value="5" id="sld-type" oninput="updateEditor()">
+    </div>
+    <div class="slider-row" style="display:flex; justify-content:space-between; gap:5px;">
+      <div style="flex:1">
+        <label>X <span id="val-x">1.0</span></label>
+        <input type="range" min="0.1" max="10.0" step="0.1" value="1.0" id="sld-x" oninput="updateEditor()">
+      </div>
+      <div style="flex:1">
+        <label>Y <span id="val-y">1.0</span></label>
+        <input type="range" min="0.1" max="10.0" step="0.1" value="1.0" id="sld-y" oninput="updateEditor()">
+      </div>
+      <div style="flex:1">
+        <label>Z <span id="val-z">1.0</span></label>
+        <input type="range" min="0.1" max="10.0" step="0.1" value="1.0" id="sld-z" oninput="updateEditor()">
+      </div>
+    </div>
+    <div class="slider-row">
       <label>TAMANHO DO PONTO <span id="val-ps">0.004</span></label>
       <input type="range" min="0.001" max="0.015" step="0.001" value="0.004" id="sld-ps" oninput="updateEditor()">
     </div>
@@ -398,8 +416,12 @@
       <input type="range" min="0.5" max="3.0" step="0.1" value="1.1" id="sld-aura" oninput="updateEditor()">
     </div>
     <div class="slider-row">
-      <label>VIBRAÇÃO (SPIN) <span id="val-spin">1.0</span></label>
-      <input type="range" min="0.5" max="3.0" step="0.1" value="1.0" id="sld-spin" oninput="updateEditor()">
+      <label>VELO. FLUXO (TEMPO) <span id="val-flow">1.0</span></label>
+      <input type="range" min="0.1" max="3.0" step="0.1" value="1.0" id="sld-flow" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>VELO. SPIN (ROTAÇÃO) <span id="val-spin">1.0</span></label>
+      <input type="range" min="0.1" max="3.0" step="0.1" value="1.0" id="sld-spin" oninput="updateEditor()">
     </div>
     <div class="slider-row">
       <label>CROMATISMO (SAT) <span id="val-sat">1.3</span></label>
@@ -469,6 +491,7 @@
   uniform float pGlow;  // ESTADO DE BRILHO EXTRA LOCAL
   uniform float pHeart; // PONTO VITAL LOCAL
   uniform float pRes;   // TAMANHO DOS ÁTOMOS (CONFIGURÁVEL)
+  uniform vec3 uParams; // PARÂMETROS X, Y, Z MANUAIS
   
   uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
   uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
@@ -523,7 +546,6 @@
     }
 
     // 2. Render Local Player at screen center
-    vec3 params = vec3(1.0); 
     float sizeFactor = pParticles / 300.0;
     float weaknessPenalty = (1.0 - pDamage * 0.8);
     float localSat = saturation * (0.5 + 0.5 * sizeFactor) * weaknessPenalty + pGlow;
@@ -531,7 +553,7 @@
     
     for(float i = 0.0; i < 300.0; i++) {
         if (i >= pParticles) break;
-        vec2 pos = getCurvePos(pCurve, t, i, pParticles, params);
+        vec2 pos = getCurvePos(pCurve, t, i, pParticles, uParams);
         float dragWeight = pow(i / max(pParticles, 1.0), 1.5) * 20.0; 
         // O MOVIMENTO NATURAL (pPos) só é perdido se houver DANO (pDamage)
         pos = pos + pPos - (pVel * dragWeight * pDamage); 
@@ -564,7 +586,7 @@
         float maxP = min(oPart, otherLimit); 
         for(float i = 0.0; i < 60.0; i++) {
             if (i >= maxP) break;
-            vec2 pos = getCurvePos(oCurve, t, i, maxP, params);
+            vec2 pos = getCurvePos(oCurve, t, i, maxP, vec3(1.0));
             float dragWeight = pow(i / maxP, 1.5) * 20.0;
             // O MESMO PARA OS OUTROS VIAJANTES
             pos = pos + oRelative - (oVel * dragWeight * otherDamage[k]);
@@ -640,22 +662,34 @@ let uExpPos, uExpTime;
 let explosions = []; // { x, y, start }
 const MAX_EXP = 5;
 
-// VALORES DO EDITOR CRIATIVO (LABORATÓRIO)
 let pRes = 0.004;
 let pAura = 1.1;
 let pSpinMult = 1.0;
+let pFlowMult = 1.0;
 let pSatBase = 1.3;
+let pTypeOverride = -1; // -1 significa evolução automática
+let pX = 1.0, pY = 1.0, pZ = 1.0;
 
 function updateEditor() {
     pRes = parseFloat(document.getElementById('sld-ps').value);
     pAura = parseFloat(document.getElementById('sld-aura').value);
     pSpinMult = parseFloat(document.getElementById('sld-spin').value);
+    pFlowMult = parseFloat(document.getElementById('sld-flow').value);
     pSatBase = parseFloat(document.getElementById('sld-sat').value);
+    pTypeOverride = parseInt(document.getElementById('sld-type').value);
+    pX = parseFloat(document.getElementById('sld-x').value);
+    pY = parseFloat(document.getElementById('sld-y').value);
+    pZ = parseFloat(document.getElementById('sld-z').value);
 
-    if(document.getElementById('val-ps')) document.getElementById('val-ps').textContent = pRes;
-    if(document.getElementById('val-aura')) document.getElementById('val-aura').textContent = pAura;
-    if(document.getElementById('val-spin')) document.getElementById('val-spin').textContent = pSpinMult;
-    if(document.getElementById('val-sat')) document.getElementById('val-sat').textContent = pSatBase;
+    document.getElementById('val-ps').textContent = pRes;
+    document.getElementById('val-aura').textContent = pAura;
+    document.getElementById('val-spin').textContent = pSpinMult;
+    document.getElementById('val-flow').textContent = pFlowMult;
+    document.getElementById('val-sat').textContent = pSatBase;
+    document.getElementById('val-type').textContent = pTypeOverride;
+    document.getElementById('val-x').textContent = pX;
+    document.getElementById('val-y').textContent = pY;
+    document.getElementById('val-z').textContent = pZ;
 }
 
 function toggleSettings() {
@@ -1024,17 +1058,20 @@ function render(now = 0) {
     document.getElementById('fps').textContent = `FPS: ${Math.round(1000 / (now - lastTime))}`;
     lastTime = now;
     if (isPlaying) gameTick();
+    if (pTypeOverride !== -1) myCurve = pTypeOverride; // SOBRESCREVE SE MANUAL
+
     gl.useProgram(program);
-    gl.uniform1f(uTime, (Date.now() - startTime) * 0.001 * pSpinMult);
+    gl.uniform1f(uTime, (Date.now() - startTime) * 0.001 * pFlowMult);
     gl.uniform2f(uRes, gl.canvas.width, gl.canvas.height);
     gl.uniform1f(uSat, pSatBase); gl.uniform1f(uBri, pAura);
     gl.uniform1f(gl.getUniformLocation(program, 'pRes'), pRes);
+    gl.uniform3f(gl.getUniformLocation(program, 'uParams'), pX, pY, pZ);
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, 0, 0); gl.uniform2f(uPVel, playerVelX, playerVelY);
     gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);
     gl.uniform1f(uPDamage, myDamage);
     gl.uniform1f(uPGlow, myGlow);
-    gl.uniform1f(uPHeart, (Date.now() % 4000) / 4000);
+    gl.uniform1f(uPHeart, (Date.now() % (4000 / pSpinMult)) / (4000 / pSpinMult));
 
     const q = settings[quality];
     gl.uniform1f(uOtherLimit, q.otherLimit);

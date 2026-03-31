@@ -979,7 +979,13 @@
         vec2 num = vec2(cos(tau.x*10.0), sin(tau.x*10.0)) * exp(-tau.y * 5.0);
         vec2 den = vec2(sin(tau.x*10.0 + t), cos(tau.x*10.0 - t)) * exp(-tau.y * 3.0);
         float j_inv = length(num) / (length(den) + 0.001);
-        float r_j = 0.4 * tanh(j_inv * params.z);
+        
+        // Correção WebGL ES 1.0: Sem 'tanh' nativo, usamos a fórmula exponencial de tangente hiperbólica
+        float val = j_inv * params.z;
+        float e_2x = exp(2.0 * val);
+        float my_tanh = (e_2x - 1.0) / (e_2x + 1.0 + 0.0001);
+        
+        float r_j = 0.4 * my_tanh;
         pos = vec2(r_j * cos(a), r_j * sin(a));
 
     } else { 

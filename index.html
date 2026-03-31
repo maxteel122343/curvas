@@ -418,7 +418,8 @@
         if (i >= pParticles) break;
         vec2 pos = getCurvePos(pCurve, t, i, pParticles, params);
         float dragWeight = pow(i / max(pParticles, 1.0), 1.5) * 20.0; 
-        pos = pos + pPos - (pVel * dragWeight);
+        // O MOVIMENTO NATURAL (pPos) só é perdido se houver DANO (pDamage)
+        pos = pos + pPos - (pVel * dragWeight * pDamage); 
         float d = length(uv - pos);
         
         // CORAÇÃO LUMINOSO LOCAL
@@ -450,7 +451,8 @@
             if (i >= maxP) break;
             vec2 pos = getCurvePos(oCurve, t, i, maxP, params);
             float dragWeight = pow(i / maxP, 1.5) * 20.0;
-            pos = pos + oRelative - (oVel * dragWeight);
+            // O MESMO PARA OS OUTROS VIAJANTES
+            pos = pos + oRelative - (oVel * dragWeight * otherDamage[k]);
             float d = length(uv - pos);
 
             // CORAÇÃO LUMINOSO INIMIGO
@@ -642,6 +644,7 @@ function initMultiplayer() {
             } else {
                 myParticles = Math.max(10, myParticles - 20);
                 score = Math.max(0, score - 5);
+                myDamage = 1.0; // FICA FERIDO (PERDE MOVIMENTO NATURAL)
                 document.getElementById('score').textContent = score;
                 showMsg("ATINGIDO POR " + payload.attacker + "!");
             }
@@ -703,8 +706,6 @@ function updatePlayersList(presenceState) {
     if (!listDiv) return;
     
     const activeNames = Object.keys(presenceState);
-    const now = Date.now();
-
     const playersArr = activeNames.map(key => {
         let s = 0, m = 0;
         if (key === myName) {
@@ -716,7 +717,7 @@ function updatePlayersList(presenceState) {
         return { name: key, score: s, mass: Math.floor(m) };
     }).sort((a, b) => b.score - a.score);
 
-    const newItems = playersArr.map(p => `
+    listDiv.innerHTML = playersArr.map(p => `
         <div class="player-item ${p.name === myName ? 'self' : ''}">
             <span class="p-name">${p.name}</span>
             <span class="p-info" style="font-size:11px; margin-left:10px; color:rgba(255,255,255,0.7)">
@@ -724,8 +725,6 @@ function updatePlayersList(presenceState) {
             </span>
         </div>
     `).join('');
-
-    listDiv.innerHTML = newItems;
 }
 
 function isHost() {
@@ -778,6 +777,7 @@ function gameTick() {
             score++; document.getElementById('score').textContent = score;
             if (myParticles < MAX_PARTICLES) myParticles += 5;
             myGlow = Math.min(1.2, myGlow + 0.4); // Brilho de alimentação!
+            myDamage = 0; // CURA IMEDIATA DO MOVIMENTO E BRILHO
             channel.send({ type: 'broadcast', event: 'eat', payload: { index: idx } });
             f.x = -999; 
         }
@@ -873,10 +873,16 @@ function render(now = 0) {
         gl.uniform1f(gl.getUniformLocation(program, `otherHeart[${i}]`), o.h || 0);
     });
     gl.uniform1i(uNumFood, foods.length);
+    const fPosArr = new Float32Array(200); // 100 foods * 2 coords
+    const fHueArr = new Float32Array(100);
     foods.forEach((f, i) => {
-        if (uFoodPos) gl.uniform2f(gl.getUniformLocation(program, `foodPos[${i}]`), f.x, f.y);
-        if (uFoodHue) gl.uniform1f(gl.getUniformLocation(program, `foodHue[${i}]`), f.hue);
+        if (i < 100) {
+            fPosArr[i*2] = f.x; fPosArr[i*2+1] = f.y;
+            fHueArr[i] = f.hue;
+        }
     });
+    gl.uniform2fv(uFoodPos, fPosArr);
+    gl.uniform1fv(uFoodHue, fHueArr);
 
     // Passar explosões para o shader de forma rápida
     for(let n = 0; n < 5; n++) {

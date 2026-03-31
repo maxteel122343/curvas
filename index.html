@@ -481,7 +481,7 @@
     <h3>Laboratório Criativo</h3>
     <div class="slider-row">
       <label>TIPO DE CURVA (FORÇAR) <span id="val-type">5</span></label>
-      <input type="range" min="0" max="136" step="1" value="5" id="sld-type" oninput="updateEditor()">
+      <input type="range" min="0" max="141" step="1" value="5" id="sld-type" oninput="updateEditor()">
     </div>
     <div class="slider-row" style="display:flex; justify-content:space-between; gap:5px;">
       <div style="flex:1">
@@ -845,8 +845,61 @@
         float r = 0.5 * pow(prob, 0.5) * params.z;
         pos = vec2(r * cos(a * freq + t), r * sin(a * freq - t));
         
+    } else if (type == 136) { 
+        // 136: Fita de Möbius Projetada (Topologia Não-Orientável)
+        float u = a * (1.0 + params.x + n*0.1); 
+        float v = (aa - 0.5) * (2.0 + params.y + n*0.2); 
+        float r_moeb = 1.0 + (v * 0.5) * cos(u * 0.5);
+        float x_moeb = 0.3 * r_moeb * cos(u);
+        float y_moeb = 0.3 * r_moeb * sin(u);
+        float z_moeb = 0.3 * (v * 0.5) * sin(u * 0.5); 
+        float proj = 1.0 / (1.5 - z_moeb * params.z);
+        pos = vec2(x_moeb, y_moeb) * proj * (1.0 + 0.1*sin(t));
+
+    } else if (type == 137) { 
+        // 137: Superfície Mínima de Gyroid (Topologia Cristalográfica)
+        vec3 p3 = vec3(cos(a*params.x)*aa*4.0, sin(a*params.y)*aa*4.0, sin(t + n)*2.0);
+        float gyroid = sin(p3.x)*cos(p3.y) + sin(p3.y)*cos(p3.z) + sin(p3.z)*cos(p3.x);
+        float r = 0.3 * aa + 0.1 * gyroid * params.z;
+        pos = vec2(r * cos(a + t), r * sin(a - t));
+
+    } else if (type == 138) { 
+        // 138: Atrator Fractal de Clifford (Integração Numérica Otimizada)
+        vec2 curr = vec2(cos(a), sin(a)) * aa; 
+        float A = 1.5 + n*0.1; float B = -1.8 + params.x;
+        float C = 1.6 + params.y; float D = 2.0 + params.z;
+        for (int k = 0; k < 5; k++) { // 5 passos de integração rápidos para GPU
+            vec2 nextPos = vec2(sin(A*curr.y) + C*cos(A*curr.x), sin(B*curr.x) + D*cos(B*curr.y));
+            curr = nextPos * 0.5;
+        }
+        pos = curr * 0.2 * (1.0 + 0.2*sin(t*2.0));
+
+    } else if (type == 139) { 
+        // 139: Conjunto de Julia Dinâmico (Matemática Complexa / Faux-Raymarching)
+        vec2 z = vec2((aa - 0.5)*3.0, (fract(a/PI*0.5) - 0.5)*3.0); // Z0 = polar
+        vec2 c = vec2(cos(t*params.x + n)*0.8, sin(t*params.y - n)*0.8); // C Dinâmico
+        float escape = 0.0;
+        for (int k = 0; k < 8; k++) {
+            z = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c; // Z = Z^2 + C
+            if (dot(z,z) > 4.0) { escape = float(k); break; }
+        }
+        float r = 0.4 * (escape / 8.0) * params.z;
+        pos = vec2(r * cos(a), r * sin(a));
+
+    } else if (type == 140) { 
+        // 140: Função Zêta de Riemann (Aproximação da Linha Crítica s = 0.5 + i*t)
+        float s_im = a * (10.0 + params.x * 5.0 + n); // Eixo Imaginário (Im(s))
+        vec2 zeta = vec2(0.0);
+        for(float k = 1.0; k <= 5.0; k++) {
+            float amp = 1.0 / sqrt(k); // Real Part s = 0.5 (1/sqrt(n))
+            float theta = -s_im * log(k); // Exp(-i * Im(s) * ln(n))
+            zeta += vec2(amp * cos(theta), amp * sin(theta)); 
+        }
+        float r = 0.1 * length(zeta) * aa * params.y;
+        pos = vec2(zeta.x, zeta.y) * 0.15 * params.z * (1.0 + 0.1*sin(t));
+
     } else { 
-        // type 136+: A MATRIZ DO ONIVERSO (Singularidade Hipercúbica)
+        // type 141+: A MATRIZ DO ONIVERSO (Singularidade Hipercúbica)
         float r = 0.3 * abs(sin(a * floor(params.x*5.0) + t));
         float fold = cos(a * floor(params.y*8.0) - t * 2.0);
         float chaos = fract(sin(i * 123.456 + t) * 987.654) * 0.1;
@@ -1083,8 +1136,8 @@ function updateEditor() {
 }
 
 function applyChaos() {
-    // ALEATORIEDADE COMPRIMIDA (137 TIPOS x INFINITOS KS = CAOS TOTAL)
-    document.getElementById('sld-type').value = Math.floor(Math.random() * 137);
+    // ALEATORIEDADE COMPRIMIDA ACADÊMICA (142 TIPOS x INFINITOS KS)
+    document.getElementById('sld-type').value = Math.floor(Math.random() * 142);
     document.getElementById('sld-x').value = (Math.random() * 10).toFixed(1);
     document.getElementById('sld-y').value = (Math.random() * 10).toFixed(1);
     document.getElementById('sld-z').value = (Math.random() * 10).toFixed(1);

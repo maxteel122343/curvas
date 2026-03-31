@@ -124,20 +124,20 @@
   
   #settings-panel {
     position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(15, 15, 30, 0.95);
-    backdrop-filter: blur(20px);
-    padding: 30px;
-    border-radius: 20px;
-    border: 1px solid var(--primary);
+    top: 20px; 
+    right: 20px; /* MOVIDO PARA A LATERAL DIREITA */
+    background: rgba(10, 10, 25, 0.85); /* Mais transparente para ver o fundo */
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid rgba(0, 242, 255, 0.3);
     z-index: 2000;
     display: none;
-    width: 380px; /* Um pouco mais largo para os sliders */
-    max-height: 85vh; /* Limite de altura */
-    overflow-y: auto; /* Barra de rolagem */
+    width: 320px; 
+    max-height: calc(100vh - 40px); 
+    overflow-y: auto;
     text-align: left;
-    box-shadow: 0 0 100px rgba(0,0,0,0.8);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
   }
   /* Estilo do scroll neon */
   #settings-panel::-webkit-scrollbar { width: 4px; }

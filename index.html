@@ -482,6 +482,11 @@
     <div class="slider-row">
       <label>TIPO DE CURVA (FORÇAR) <span id="val-type">5</span></label>
       <input type="range" min="0" max="148" step="1" value="5" id="sld-type" oninput="updateEditor()">
+      <div id="meta-box" style="margin-top: 15px; background: rgba(0,242,255,0.05); padding: 12px; border-left: 2px solid var(--primary); font-size: 11px; line-height: 1.5; color: #ccc;">
+        <strong style="color: #fff; font-size: 12px; text-transform: uppercase;" id="meta-name">Curva Desconhecida</strong><br>
+        <span style="color: #00ffaa;">FAMÍLIA:</span> <span id="meta-family">-</span><br>
+        <span style="color: #ffeb3b;">CLASSE:</span> <span id="meta-class">-</span>
+      </div>
     </div>
     <div class="slider-row" style="display:flex; justify-content:space-between; gap:5px;">
       <div style="flex:1">
@@ -1219,6 +1224,59 @@ function updateMassManual() {
     document.getElementById('val-mass-sld').textContent = myParticles;
 }
 
+function getCurveMeta(id) {
+    if (id == 0) return { name: "Órbitas Lissajous 3D", family: "Harmônica Simulada", cls: "Física Clássica" };
+    if (id == 1) return { name: "Espiral de Arquimedes", family: "Espirais Algébricas", cls: "Geometria Euclidiana" };
+    if (id == 2) return { name: "Rhodonea Dinâmica (Flores Matemáticas)", family: "Curvas Polares", cls: "Botânica Numérica" };
+    if (id == 12) return { name: "Hélice de DNA 3D", family: "Curvas Espaciais", cls: "Biologia Estrutural" };
+    if (id == 13) return { name: "Projeção de Buraco de Minhoca", family: "Geometria Dobrada", cls: "Astrofísica" };
+    if (id == 15) return { name: "Quantização Ciber-Glitch", family: "Matemática Discreta", cls: "Teoria da Informação / Computacional" };
+    if (id == 16) return { name: "SuperFórmula de Gielis", family: "Geometria Orgânica Poligonal", cls: "Biologia Analítica" };
+    if (id == 17) return { name: "Borboleta de Temple Fay", family: "Ondas Transcendentes", cls: "Geometria Diferencial Pura" };
+    if (id == 18) return { name: "Lemniscata (Infinito)", family: "Geometria Euclidiana Clássica", cls: "Álgebra Clássica e Topologia" };
+    if (id == 19) return { name: "Hipotrocoide (Espirógrafo Real)", family: "Curvas de Roleta Planar", cls: "Cinemática Racional" };
+    if (id == 20) return { name: "Espiral Logarítmica Áurea", family: "Proporções Exponenciais Constantes", cls: "Astrofísica / Proporção de Galáxias" };
+    if (id == 24) return { name: "Projeção de Toro (Donut Geométrico 3D)", family: "Variedade Topológica 2-D Local", cls: "Topologia Algébrica" };
+    if (id == 25) return { name: "Nó Trevo Projetado", family: "Curva Toroidal Embutida", cls: "Topologia Matemática Discreta / Teoria dos Nós" };
+    if (id == 31) return { name: "Horizonte de Eventos Simplificado", family: "Geometria Singular Fechada", cls: "Física Clássica / Relatividade Inicial" };
+    if (id == 32) return { name: "Atrator Numérico Bidimensional", family: "Sistemas Caóticos Base", cls: "Teoria do Caos Experimental" };
+    if (id == 33) return { name: "Aproximação da Curva de Peano-Hilbert", family: "Curvas Preenchedoras Contínuas Euclidinas", cls: "Geometria Matemática Fractal" };
+    if (id == 37) return { name: "Floco de Neve de Koch (Iteração Limite)", family: "Ondulação Não-Diferenciável Local", cls: "Estudo Criptográfico Fractal" };
+    
+    if (id >= 64 && id <= 68) {
+        if (id == 64) return { name: "Atratores Caóticos Paramétricos", family: "Sistemas Dinâmicos Abertos Base", cls: "Teoria do Caos Clássica" };
+        if (id == 65) return { name: "L-System Fractal Expandido (Aristid)", family: "Gramática Gerativa e Recursiva (Gramática L)", cls: "Dinâmica Botânica e Crescimento Celular" };
+        if (id == 66) return { name: "Bézier Cúbica Acoplada à Fluidos Z", family: "Formulação Spline Algorítmica Racional", cls: "Geometria Computacional Estática e Design" };
+        if (id == 67) return { name: "Função Hash de Distribuição Quântica", family: "Desvio de Incerteza Vectorial Pseudoaleatória", cls: "Mecânica Quântica Numérica Teórica" };
+        if (id == 68) return { name: "A Singularidade Primordial de Ruído Central", family: "Mapeamento Espectral Limitado e Saturado", cls: "Modelagem de Campo Físico e Entropia Universal" };
+    }
+
+    if (id >= 69 && id <= 127) return { name: "VÁCUO GEOMÉTRICO " + id, family: "ZONA FANTASMA NO SHADER", cls: "NENHUMA EQUAÇÃO DETECTADA - Retornando [Singularidade Primordial Padrão]" };
+
+    if (id == 128) return { name: "Sintetizador de Episiclos de Fourier", family: "Análise Harmônica Discreta e Somatórios Perversos", cls: "Acústica Física de Sinais e Propagação de Ondas" };
+    if (id == 129) return { name: "Nó de Lissajous 3D Intercambiável", family: "Equações Curvas Toroidais Amarradas Analiticamente", cls: "Topologia Matemática Paramétrica de Alto Eixo" };
+    if (id == 130) return { name: "Tesselação Óptica (Op-Art Penrose Quebrada)", family: "Fatiamento Aperiódico de Distorção Simétrica", cls: "Cristalografia Proibida Natural Quase-Periódica" };
+    if (id == 131) return { name: "Campos Magnéticos em Dispersão Z e W", family: "Linhas de Força Racionais em Espaços Hiperbólicos", cls: "Eletromagnetismo Clássico e Física Vetorial Aberta" };
+    if (id == 132) return { name: "Pseudo-esfera Extrema de Beltrami", family: "Superfície Matemática de Curvatura Gaussiana Negativa", cls: "Física Geodésica e Topologia Não-Euclidiana Absoluta" };
+    if (id == 133) return { name: "Morphogenesis (Os Tubos de Alan Turing)", family: "Diferenças Celulares Dinâmicas por Reação-Difusão Z", cls: "Biologia Numérica Generativa Computacional Pura" };
+    if (id == 134) return { name: "Superfície Mínima Toroidal de Costa", family: "Matemática Extrema de Área Curva Mínima Sem Contatos", cls: "Geometria Diferencial Avançada Transcendente" };
+    if (id == 135) return { name: "Propagação Estocástica Escalar (Mar de Dirac)", family: "Integração Probabilística de Ondas Moduladas Simétricas", cls: "Física Quântica de Alto Nível de Elementares Partículas" };
+    if (id == 136) return { name: "Super-Fita de Möbius (Mapeada em Projeção Frontal)", family: "Variedade Topológica Contínua Integral Não-Orientável", cls: "Topologia Clássica Paramétrica Superior e Relatividade" };
+    if (id == 137) return { name: "Superfície Mínima de Estrutura de Gyroid TTP", family: "Intersecções Senoidais de Infinito Repasse Periódico", cls: "Pesquisa Cristalina de Matéria Condensada Biomimética" };
+    if (id == 138) return { name: "O Atrator Clássico Fractal Absoluto de Clifford", family: "Bifurcação Paramétrica em Mapas Numéricos de Órbita", cls: "Teoria do Caos Computacional Clássica Profunda" };
+    if (id == 139) return { name: "Dinâmica Plena Fractal Faux-Raymarching (Julia Z^2+C)", family: "Limite Fractal em Planos Complexos com C Orgânico Mutante", class: "Matemática Complexa Experimental de Fuga Dinâmica" };
+    if (id == 140) return { name: "A Função Zêta de Bernhard Riemann (Hipótese Crítica)", family: "Somatórios Assintóticos Analíticos do Eixo S = 0.5 + T(i)", class: "Geometria Euclidiana da Teoria Analítica dos Números Prime" };
+    if (id == 141) return { name: "A Equação Numérica Quântica Orbital de Schrödinger (Harmônicos)", family: "Modelagem Harmônica Angular Pura do Momento Polar Aberto", cls: "Geometria Molecular Computacional (Mecânica Quântica Atômica)" };
+    if (id == 142) return { name: "A Fibração Estereográfica Perfeita de Heinz Hopf (Hiperesfera)", family: "S3->S2: Transformação Singular Projetiva Trans-Hiperespacial 4D", cls: "A Física Superior Projetiva de Multiversos Fibrados Principais" };
+    if (id == 143) return { name: "A Métrica Dinâmica Relativística de Karl Schwarzschild (Caos M)", family: "Geodésica Espaço-Temporal de Captura Limite de Fótons Singulares", cls: "Relatividade Geral Computacional (Gravitação de Buracos Negros)" };
+    if (id == 144) return { name: "Reações Celulares Biológicas Abertas de Mitose por Gray-Scott", family: "Laplaciano Duplo Integral Difusor Computado em Fase Contínua", class: "Biologia Numérica Fundamental (Equacionamento Diferencial de Vida)" };
+    if (id == 145) return { name: "A Transformação Limite Constante Espaço-Temporal de Lorentz", family: "Aceleração Vetorial Relativista Aberta (Dilatação R4 C=1)", cls: "A Teoria Restrita de Einstein Analisada em Geometria de Alta Fase" };
+    if (id == 146) return { name: "O Domínio Paramétrico Integral Suave Geométrico (Espiral Clotóide)", family: "Integrais Lineares Assintóticas da Dupla Modulação de Onda de Fresnel", cls: "Matemática Acústica, Rodoviária e Estética de Difração Direta Fina" };
+    if (id == 147) return { name: "As Projeções Discretas da Função Invariante-J M-Theory Pura de Klein", family: "Curvas Quocientes Algébricas Fechadas no Plano Hiperbólico Fractal", cls: "A Teoria Dimensional Super-Simétrica Integrada Aberta (Teoria M / Cordas)" };
+    
+    return { name: "Curva Poligonal Algorítmica Transcendente Variante " + id, family: "Geometria Linear Vetorial Padrão Fechada de Shader", cls: "Geometria Básica Algébrica Polivalente Gráfica WebGL" }; 
+}
+
 function updateEditor() {
     pRes = parseFloat(document.getElementById('sld-ps').value);
     pAura = parseFloat(document.getElementById('sld-aura').value);
@@ -1263,6 +1321,13 @@ function updateEditor() {
     document.getElementById('val-z').textContent = pZ;
     document.getElementById('val-w').textContent = pW;
     document.getElementById('val-k').textContent = pK;
+    
+    // ATUALIZAÇÃO DA ENCICLOPÉDIA DA CURVA ATUAL
+    let meta = getCurveMeta(pTypeOverride);
+    document.getElementById('meta-name').textContent = meta.name;
+    document.getElementById('meta-family').textContent = meta.family;
+    document.getElementById('meta-class').textContent = meta.cls || meta.class; // suporta ambos os nomes no JS
+    
     document.getElementById('val-jit').textContent = pJitter;
     document.getElementById('val-twi').textContent = pTwist;
     document.getElementById('val-ab').textContent = pAb;

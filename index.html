@@ -427,6 +427,18 @@
       <label>CROMATISMO (SAT) <span id="val-sat">1.3</span></label>
       <input type="range" min="0.0" max="3.0" step="0.1" value="1.3" id="sld-sat" oninput="updateEditor()">
     </div>
+    <div class="slider-row">
+      <label>ENTROPIA (VIBRAÇÃO) <span id="val-jit">0.0</span></label>
+      <input type="range" min="0.0" max="0.1" step="0.001" value="0.0" id="sld-jit" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>TORÇÃO (HELIX) <span id="val-twi">0.0</span></label>
+      <input type="range" min="0.0" max="2.0" step="0.05" value="0.0" id="sld-twi" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>ABERRAÇÃO (CHROMA) <span id="val-ab">0.0</span></label>
+      <input type="range" min="0.0" max="1.5" step="0.05" value="0.0" id="sld-ab" oninput="updateEditor()">
+    </div>
   </div>
 
   <button class="start-btn" style="margin-top:20px; padding:10px" onclick="toggleSettings()">Fechar</button>
@@ -492,6 +504,9 @@
   uniform float pHeart; // PONTO VITAL LOCAL
   uniform float pRes;   // TAMANHO DOS ÁTOMOS (CONFIGURÁVEL)
   uniform vec3 uParams; // PARÂMETROS X, Y, Z MANUAIS
+  uniform float pJitter; // ENTROPIA (VIBRAÇÃO)
+  uniform float pTwist;  // TORÇÃO (HELIX)
+  uniform float pAb;    // ABERRAÇÃO CROMÁTICA
   
   uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
   uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
@@ -501,7 +516,10 @@
   #define PI 3.14159265359
 
   vec3 getSpirographColor(float t, float i, float sat) {
-    vec3 color = vec3(0.5 + 0.5 * sin(t + i * 0.1), 0.5 + 0.5 * cos(t + i * 0.15), 0.5 + 0.5 * sin(t + i * 0.2));
+    vec3 color;
+    color.r = 0.5 + 0.5 * sin(t + i * 0.1 + pAb); 
+    color.g = 0.5 + 0.5 * cos(t + i * 0.15);
+    color.b = 0.5 + 0.5 * sin(t + i * 0.2 - pAb); 
     float luminance = dot(color, vec3(0.299, 0.587, 0.114));
     return mix(vec3(luminance), color, sat);
   }
@@ -554,8 +572,16 @@
     for(float i = 0.0; i < 300.0; i++) {
         if (i >= pParticles) break;
         vec2 pos = getCurvePos(pCurve, t, i, pParticles, uParams);
+
+        // TORÇÃO (HELIX)
+        float ang = i * pTwist * 0.05;
+        pos = vec2(pos.x * cos(ang) - pos.y * sin(ang), pos.x * sin(ang) + pos.y * cos(ang));
+        
+        // ENTROPIA (JITTER)
+        float noise = fract(sin(i * 123.45) * 456.78) - 0.5;
+        pos += noise * pJitter;
+        
         float dragWeight = pow(i / max(pParticles, 1.0), 1.5) * 20.0; 
-        // O MOVIMENTO NATURAL (pPos) só é perdido se houver DANO (pDamage)
         pos = pos + pPos - (pVel * dragWeight * pDamage); 
         float d = length(uv - pos);
         
@@ -669,6 +695,7 @@ let pFlowMult = 1.0;
 let pSatBase = 1.3;
 let pTypeOverride = -1; // -1 significa evolução automática
 let pX = 1.0, pY = 1.0, pZ = 1.0;
+let pJitter = 0.0, pTwist = 0.0, pAb = 0.0;
 
 function updateEditor() {
     pRes = parseFloat(document.getElementById('sld-ps').value);
@@ -680,6 +707,9 @@ function updateEditor() {
     pX = parseFloat(document.getElementById('sld-x').value);
     pY = parseFloat(document.getElementById('sld-y').value);
     pZ = parseFloat(document.getElementById('sld-z').value);
+    pJitter = parseFloat(document.getElementById('sld-jit').value);
+    pTwist = parseFloat(document.getElementById('sld-twi').value);
+    pAb = parseFloat(document.getElementById('sld-ab').value);
 
     document.getElementById('val-ps').textContent = pRes;
     document.getElementById('val-aura').textContent = pAura;
@@ -690,6 +720,9 @@ function updateEditor() {
     document.getElementById('val-x').textContent = pX;
     document.getElementById('val-y').textContent = pY;
     document.getElementById('val-z').textContent = pZ;
+    document.getElementById('val-jit').textContent = pJitter;
+    document.getElementById('val-twi').textContent = pTwist;
+    document.getElementById('val-ab').textContent = pAb;
 }
 
 function toggleSettings() {
@@ -1066,6 +1099,9 @@ function render(now = 0) {
     gl.uniform1f(uSat, pSatBase); gl.uniform1f(uBri, pAura);
     gl.uniform1f(gl.getUniformLocation(program, 'pRes'), pRes);
     gl.uniform3f(gl.getUniformLocation(program, 'uParams'), pX, pY, pZ);
+    gl.uniform1f(gl.getUniformLocation(program, 'pJitter'), pJitter);
+    gl.uniform1f(gl.getUniformLocation(program, 'pTwist'), pTwist);
+    gl.uniform1f(gl.getUniformLocation(program, 'pAb'), pAb);
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, 0, 0); gl.uniform2f(uPVel, playerVelX, playerVelY);
     gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);

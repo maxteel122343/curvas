@@ -125,24 +125,21 @@
   #settings-panel {
     position: fixed;
     top: 20px; 
-    right: 20px; /* MOVIDO PARA A LATERAL DIREITA */
-    background: rgba(10, 10, 25, 0.85); /* Mais transparente para ver o fundo */
-    backdrop-filter: blur(10px);
-    padding: 25px;
-    border-radius: 15px;
-    border: 1px solid rgba(0, 242, 255, 0.3);
+    right: 20px;
+    background: transparent; /* TOTALMENTE LISO */
+    backdrop-filter: none;
+    padding: 10px;
     z-index: 2000;
-    display: none;
-    width: 320px; 
+    display: block; /* SEMPRE VISÍVEL */
+    width: 280px; 
     max-height: calc(100vh - 40px); 
     overflow-y: auto;
     text-align: left;
-    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+    pointer-events: auto;
   }
-  /* Estilo do scroll neon */
-  #settings-panel::-webkit-scrollbar { width: 4px; }
-  #settings-panel::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-  #settings-panel::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 2px; }
+  /* Estilo do scroll sutil */
+  #settings-panel::-webkit-scrollbar { width: 3px; }
+  #settings-panel::-webkit-scrollbar-thumb { background: rgba(0, 242, 255, 0.5); border-radius: 2px; }
   #settings-panel.active { display: block; }
   .settings-panel h2 { margin-top: 0; font-size: 1.2rem; text-transform: uppercase; color: var(--primary); }
   .quality-option {
@@ -376,7 +373,6 @@
     <input type="text" id="username" placeholder="Seu nome estelar..." maxlength="12">
     <button class="start-btn" onclick="startGame()">Entrar na Guerra</button>
   </div>
-  <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
 </div>
 
 <div id="settings-panel" class="settings-panel">
@@ -471,8 +467,6 @@
       <input type="range" min="0.2" max="3.0" step="0.1" value="1.0" id="sld-zoo" oninput="updateEditor()">
     </div>
   </div>
-
-  <button class="start-btn" style="margin-top:20px; padding:10px" onclick="toggleSettings()">Fechar</button>
 </div>
 
 <canvas></canvas>

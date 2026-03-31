@@ -355,10 +355,13 @@
   <div id="geo-hud">
     <h4>LABORATÓRIO GEOMÉTRICO</h4>
     <div class="geo-row">CLASSE: <span id="hud-class" class="geo-val">-</span></div>
-    <div class="geo-row">TIPO: <span id="hud-type" class="geo-val">-</span></div>
+    <div class="geo-row">ID CURVA: <span id="hud-curve" class="geo-val">1</span></div>
+    <div class="geo-row">DNA (X, Y, Z): <span id="hud-xyz" class="geo-val">1.0, 1.0, 1.0</span></div>
     <div class="geo-row">MASSA: <span id="hud-mass" class="geo-val">10</span></div>
     <div class="geo-row">ESTADO: <span id="hud-status" class="geo-val status-healthy">SAUDÁVEL</span></div>
-    <div class="geo-row">VIBRAÇÃO: <span id="hud-speed" class="geo-val">0</span></div>
+    <div class="geo-row">SATURAÇÃO: <span id="hud-sat" class="geo-val">0</span></div>
+    <div class="geo-row">BRILHO: <span id="hud-bri" class="geo-val">0</span></div>
+    <div class="geo-row">SPIN: <span id="hud-spin" class="geo-val">1.0</span></div>
   </div>
   <div class="hud-top">
     <div id="score">0</div>
@@ -877,19 +880,38 @@ function gameTick() {
     myCurve = curve;
 
     // Atualizar HUD Geométrico
-    document.getElementById('hud-class').textContent = cls;
-    document.getElementById('hud-type').textContent = name;
-    document.getElementById('hud-mass').textContent = Math.floor(m);
-    const speed = Math.sqrt(playerVelX*playerVelX + playerVelY*playerVelY) * 1000;
-    document.getElementById('hud-speed').textContent = Math.floor(speed);
-    
-    const statusEl = document.getElementById('hud-status');
-    if (myDamage > 0.1) {
-        statusEl.textContent = "FERIDO";
-        statusEl.className = "geo-val status-injured";
-    } else {
-        statusEl.textContent = "SAUDÁVEL";
-        statusEl.className = "geo-val status-healthy";
+    if (document.getElementById('hud-class')) {
+        document.getElementById('hud-class').textContent = cls;
+        document.getElementById('hud-curve').textContent = curve + " (" + name + ")";
+        document.getElementById('hud-mass').textContent = Math.floor(m);
+        
+        // Mapear XYZ aproximado usado no shader para cada tipo
+        let xyz = "1.0, 1.0, 1.0";
+        if (curve === 0) xyz = "4.0, 1.0, 3.0";
+        else if (curve === 2) xyz = "2.0, 1.0, 1.0";
+        else if (curve === 3) xyz = "5.0, 2.0, 4.0";
+        else if (curve === 4) xyz = "3.0, 1.0, 2.0";
+        else if (curve === 5) xyz = "6.0, 1.0, 1.5";
+        else if (curve === 7) xyz = "8.0, 3.0, 5.0";
+        else if (curve === 8) xyz = "7.0, 1.0, 0.5";
+        document.getElementById('hud-xyz').textContent = xyz;
+
+        const relSpeed = Math.sqrt(playerVelX*playerVelX + playerVelY*playerVelY) * 1000;
+        // Parâmetros Técnicos (Sincronizados com o Shader)
+        const currentSat = (1.3 * (0.5 + 0.5 * (m/300)) * (1.0 - myDamage * 0.8)).toFixed(2);
+        const currentBri = ((1.1 * (0.5 + 0.5 * (m/300)) + myGlow * 1.5) * (1.0 - myDamage * 0.8)).toFixed(2);
+        document.getElementById('hud-sat').textContent = currentSat;
+        document.getElementById('hud-bri').textContent = currentBri;
+        document.getElementById('hud-spin').textContent = "x" + (1.0 + (relSpeed / 100)).toFixed(2);
+        
+        const statusEl = document.getElementById('hud-status');
+        if (myDamage > 0.1) {
+            statusEl.textContent = "FERIDO";
+            statusEl.className = "geo-val status-injured";
+        } else {
+            statusEl.textContent = "SAUDÁVEL";
+            statusEl.className = "geo-val status-healthy";
+        }
     }
 
     // Progredir Explosões

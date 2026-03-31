@@ -458,6 +458,18 @@
       <label>ASSIMETRIA (SKEW) <span id="val-ske">1.0</span></label>
       <input type="range" min="0.2" max="2.0" step="0.05" value="1.0" id="sld-ske" oninput="updateEditor()">
     </div>
+    <div class="slider-row">
+      <label>DENSIDADE (STRUCTURE) <span id="val-den">1.0</span></label>
+      <input type="range" min="0.1" max="5.0" step="0.1" value="1.0" id="sld-den" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>CAUDA (PERSISTENCE) <span id="val-tai">1.5</span></label>
+      <input type="range" min="0.1" max="8.0" step="0.1" value="1.5" id="sld-tai" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>ZOOM ESTELAR <span id="val-zoo">1.0</span></label>
+      <input type="range" min="0.2" max="3.0" step="0.1" value="1.0" id="sld-zoo" oninput="updateEditor()">
+    </div>
   </div>
 
   <button class="start-btn" style="margin-top:20px; padding:10px" onclick="toggleSettings()">Fechar</button>
@@ -529,6 +541,9 @@
   uniform float pBre;   // RESPIRAÇÃO
   uniform float pHcy;   // VELOCIDADE DA COR
   uniform float pSke;   // ASSIMETRIA
+  uniform float pDen;   // DENSIDADE
+  uniform float pTai;   // CAUDA (DECAIMENTO)
+  uniform float uZoom;  // ZOOM DA CÂMERA
   
   uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
   uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
@@ -564,7 +579,8 @@
   }
 
   void main() {
-    vec2 uv = (gl_FragCoord.xy - 0.5 * resolution.xy) / min(resolution.x, resolution.y);
+    vec2 rawUv = (gl_FragCoord.xy - 0.5 * resolution.xy) / min(resolution.x, resolution.y);
+    vec2 uv = rawUv * uZoom; // APLICAR ZOOM ESTELAR
     vec3 outColor = vec3(0.0);
     float t = time * 0.8;
     
@@ -594,25 +610,28 @@
     
     for(float i = 0.0; i < 300.0; i++) {
         if (i >= pParticles) break;
-        vec2 pos = getCurvePos(pCurve, t, i, pParticles, uParams);
+        // APRIMORAMENTO 1: DENSIDADE (STEP)
+        float stepI = i * pDen;
+        vec2 pos = getCurvePos(pCurve, t, stepI, pParticles * pDen, uParams);
 
         // TORÇÃO (HELIX)
         float ang = i * pTwist * 0.05;
         pos = vec2(pos.x * cos(ang) - pos.y * sin(ang), pos.x * sin(ang) + pos.y * cos(ang));
         
-        // APRIMORAMENTO 1: RESPIRAÇÃO
+        // APRIMORAMENTO 2: RESPIRAÇÃO
         float bre = 1.0 + 0.2 * sin(time * pBre);
         pos *= bre;
         
-        // APRIMORAMENTO 2: ASSIMETRIA (SKEW)
+        // APRIMORAMENTO 3: ASSIMETRIA (SKEW)
         pos.x *= pSke;
         pos.y /= pSke;
 
-        // APRIMORAMENTO 3: ENTROPIA (JITTER)
+        // APRIMORAMENTO 4: ENTROPIA (JITTER)
         float noise = fract(sin(i * 123.45) * 456.78) - 0.5;
         pos += noise * pJitter;
         
-        float dragWeight = pow(i / max(pParticles, 1.0), 1.5) * 20.0; 
+        // APRIMORAMENTO 5: CAUDA (TAIL FADE)
+        float dragWeight = pow(i / max(pParticles, 1.0), pTai) * 20.0; 
         pos = pos + pPos - (pVel * dragWeight * pDamage); 
         float d = length(uv - pos);
         
@@ -744,6 +763,9 @@ function updateEditor() {
     pBre = parseFloat(document.getElementById('sld-bre').value);
     pHcy = parseFloat(document.getElementById('sld-hcy').value);
     pSke = parseFloat(document.getElementById('sld-ske').value);
+    pDen = parseFloat(document.getElementById('sld-den').value);
+    pTai = parseFloat(document.getElementById('sld-tai').value);
+    pZoo = parseFloat(document.getElementById('sld-zoo').value);
 
     document.getElementById('val-ps').textContent = pRes;
     document.getElementById('val-aura').textContent = pAura;
@@ -760,6 +782,9 @@ function updateEditor() {
     document.getElementById('val-bre').textContent = pBre;
     document.getElementById('val-hcy').textContent = pHcy;
     document.getElementById('val-ske').textContent = pSke;
+    document.getElementById('val-den').textContent = pDen;
+    document.getElementById('val-tai').textContent = pTai;
+    document.getElementById('val-zoo').textContent = pZoo;
 }
 
 function toggleSettings() {
@@ -1142,6 +1167,9 @@ function render(now = 0) {
     gl.uniform1f(gl.getUniformLocation(program, 'pBre'), pBre);
     gl.uniform1f(gl.getUniformLocation(program, 'pHcy'), pHcy);
     gl.uniform1f(gl.getUniformLocation(program, 'pSke'), pSke);
+    gl.uniform1f(gl.getUniformLocation(program, 'pDen'), pDen);
+    gl.uniform1f(gl.getUniformLocation(program, 'pTai'), pTai);
+    gl.uniform1f(gl.getUniformLocation(program, 'uZoom'), pZoo);
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, 0, 0); gl.uniform2f(uPVel, playerVelX, playerVelY);
     gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);

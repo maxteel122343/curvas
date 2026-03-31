@@ -625,8 +625,9 @@ function initMultiplayer() {
     })
     .on('broadcast', { event: 'pos' }, ({ payload }) => { 
         if (payload.id !== myName) {
-            payload.lastSeen = Date.now(); // Lógica anti-fantasma
+            payload.lastSeen = Date.now(); 
             others[payload.id] = payload; 
+            updatePlayersList(channel.presenceState()); // Atualizar ranking ao receber dados
         }
     })
     .on('broadcast', { event: 'die' }, ({ payload }) => {
@@ -685,6 +686,7 @@ function initMultiplayer() {
                 event: 'pos', 
                 payload: { id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, c: myCurve, p: myParticles, d: myDamage, g: myGlow, h: myHeart, s: score } 
             });
+            updatePlayersList(channel.presenceState()); // Garantir ranking local sempre atualizado
         }
     }, 40);
 }

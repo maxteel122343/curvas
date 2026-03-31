@@ -471,7 +471,7 @@
     <h3>Laboratório Criativo</h3>
     <div class="slider-row">
       <label>TIPO DE CURVA (FORÇAR) <span id="val-type">5</span></label>
-      <input type="range" min="0" max="8" step="1" value="5" id="sld-type" oninput="updateEditor()">
+      <input type="range" min="0" max="12" step="1" value="5" id="sld-type" oninput="updateEditor()">
     </div>
     <div class="slider-row" style="display:flex; justify-content:space-between; gap:5px;">
       <div style="flex:1">
@@ -646,6 +646,20 @@
     else if (type == 7) { float a = i / max(pCount, 1.0) * PI * 2.0; float z = (i / max(pCount, 1.0)) * 2.0 - 1.0; float radius = 0.3 + 0.1 * sin(t * params.x + z * 5.0); pos = vec2(radius * sin(a * params.y + t * 2.0), z * cos(t * params.z) + radius * cos(a * params.y + t * 2.0) * sin(t)); }
     else if (type == 8) { float angle = i / max(pCount,1.0) * PI * 10.0 + t; float radius = 0.05 + 0.3 * (i / max(pCount, 1.0)); pos = vec2(radius * cos(angle * params.x) * sin(t * params.y), radius * sin(angle * params.z) * cos(t * params.y)); }
     else if (type == 9) { float width = 0.6; float a = (i / max(pCount, 1.0) - 0.5) * width; pos = vec2( a, (0.2 + 0.15 * sin(t * 0.2)) * sin(t * params.x + a * 10.0 * params.y) * cos(t * params.z + a * 8.0) ); }
+    else if (type == 10) { // CORDA DINÂMICA (Onda Linear)
+        float a = (i / max(pCount, 10.0)) * 2.0 - 1.0; 
+        pos = vec2(a * 0.7, sin(t * params.x + a * 5.0 * params.y) * 0.2 * params.z);
+    }
+    else if (type == 11) { // FRACTAL DE PULSAR (Pontas Agudas)
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float r = 0.4 * (0.8 + 0.2 * abs(cos(a * params.x + t)));
+        pos = vec2(r * sin(a * params.y + t), r * cos(a * params.z + t));
+    }
+    else if (type == 12) { // DNA HÉLICE 3D
+        float a = i / max(pCount, 1.0) * PI * 10.0 + t;
+        float z = sin(a * 0.3 * params.z);
+        pos = vec2((0.3 + 0.1 * z) * cos(a * params.x), (0.1 * z + 0.2) * sin(a * params.y));
+    }
     return pos;
   }
 
@@ -880,9 +894,10 @@ function applyHarmony() {
     const archetypes = [
         { type: 5, x: 1.0, y: PHI, z: PHI*2, jit: 0, twi: 0.1, ab: 0.2, bre: 1.0, den: 1.0, tai: 1.5 }, // Flor Cósmica
         { type: 2, x: 5.0, y: 2.0, z: 4.0, jit: 0.002, twi: 0.5, ab: 0, bre: 2.5, den: 1.5, tai: 4.0 },  // Estrela Pulsante
-        { type: 4, x: 8.0, y: 0.5, z: 1.0, jit: 0.01, twi: 0, ab: 0.5, bre: 0.5, den: 0.2, tai: 8.0 },   // Teia de Neon
-        { type: 0, x: 4.0, y: 1.0, z: 3.0, jit: 0.02, twi: 1.5, ab: 1.2, bre: 0, den: 0.8, tai: 1.0 },   // Supernova Crítica
-        { type: 7, x: 8.0, y: 3.1, z: 5.1, jit: 0, twi: 0.05, ab: 0.1, bre: 1.8, den: 2.0, tai: 2.5 }    // Mandala Infinita
+        { type: 10, x: 5.0, y: 1.0, z: 2.0, jit: 0, twi: 0, ab: 0.8, bre: 0.5, den: 0.5, tai: 1.0 },    // Onda Crítica (NOVO)
+        { type: 11, x: 12.0, y: 1.0, z: 1.0, jit: 0, twi: 0, ab: 0.1, bre: 1.5, den: 1.0, tai: 3.0 },   // Estrela de Pulsar (NOVO)
+        { type: 12, x: 1.0, y: 1.0, z: 2.0, jit: 0.01, twi: 0, ab: 0.3, bre: 0.5, den: 0.8, tai: 2.0 }, // Hélice DNA (NOVO)
+        { type: 4, x: 8.0, y: 0.5, z: 1.0, jit: 0.01, twi: 0, ab: 0.5, bre: 0.5, den: 0.2, tai: 8.0 }    // Teia de Neon
     ];
     
     const picked = archetypes[Math.floor(Math.random() * archetypes.length)];

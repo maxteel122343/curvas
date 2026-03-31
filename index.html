@@ -736,28 +736,48 @@
     return pos;
   }
 
-  // ═══ GRUPO B: TIPOS 64-127 (Atratores + Botânica + Bézier + Quântico) ═══
+  // ═══ GRUPO B: TIPOS 64-68 (COMPRIMIDO: Atratores, Botânica, Bézier, Quântico, Sing) ═══
   vec2 getCurvePosB(int type, float t, float i, float pCount, vec3 params) {
     float a = i / max(pCount, 1.0) * PI * 2.0 + t;
     vec2 pos = vec2(0.0);
-    if (type >= 64 && type <= 79) { // Atratores Caóticos
-        float x=sin(a*params.x+t); float y=cos(a*params.y+t);
-        for(int k=0;k<3;k++){float nx=sin(params.z*x)+params.y*cos(params.z*x); float ny=sin(params.x*y)+params.y*cos(params.x*y); x=nx;y=ny;}
-        pos=vec2(x,y)*0.3;
-    } else if (type >= 80 && type <= 95) { // L-System (Botânica)
-        float aa=i/max(pCount,1.0); float angle=aa*PI*2.0*params.x+t; float r=0.4*pow(aa,0.5);
-        if(mod(i,5.0)<1.0) r*=1.2;
-        pos=vec2(r*cos(angle),r*sin(angle));
-    } else if (type >= 96 && type <= 111) { // Bézier / Fitas de Fluido
-        float aa=i/max(pCount,1.0);
-        vec2 p1=vec2(sin(t),cos(t))*0.4; vec2 p2=vec2(cos(t*params.x),sin(t*params.y))*0.4;
-        pos=mix(p1,p2,aa)+vec2(0.0,0.1*sin(aa*10.0+t*params.z));
-    } else if (type >= 112 && type <= 126) { // Mecânica Quântica
-        float r=0.4*proceduralHash1(i+t); float ang=i/max(pCount,1.0)*PI*2.0+t;
-        pos=vec2(r*cos(ang*params.x),r*sin(ang*params.y));
-    } else { // type 127 - Singularidade Absoluta
-        float r=0.5*abs(sin(t*10.0))*proceduralHash1(i);
-        pos=vec2(r*cos(a*params.x),r*sin(a*params.y))*(1.0+sin(t));
+    float n = pK; // Constante Harmônica conectada
+
+    if (type == 64) { 
+        // 64: Atratores Caóticos Paramétricos
+        float x = sin(a * params.x + t + n); 
+        float y = cos(a * params.y + t - n);
+        for(int k=0; k<3; k++) {
+            float nx = sin(params.z * x) + params.y * cos(params.z * x + n*0.1); 
+            float ny = sin(params.x * y) + params.y * cos(params.x * y - n*0.1); 
+            x = nx; y = ny;
+        }
+        pos = vec2(x, y) * 0.3;
+
+    } else if (type == 65) { 
+        // 65: L-System Orgânico (Botânica Fractal)
+        float aa = i / max(pCount, 1.0); 
+        float angle = aa * PI * 2.0 * params.x + t + n; 
+        float r = 0.4 * pow(aa, 0.5) * (1.0 + 0.1 * sin(n));
+        if(mod(i, 5.0 + n*0.5) < 1.0) r *= 1.2;
+        pos = vec2(r * cos(angle), r * sin(angle));
+
+    } else if (type == 66) { 
+        // 66: Bézier / Fitas de Fluido
+        float aa = i / max(pCount, 1.0);
+        vec2 p1 = vec2(sin(t + n), cos(t - n)) * 0.4; 
+        vec2 p2 = vec2(cos(t * params.x + n), sin(t * params.y + n)) * 0.4;
+        pos = mix(p1, p2, aa) + vec2(0.0, 0.1 * sin(aa * 10.0 + t * params.z + n));
+
+    } else if (type == 67) { 
+        // 67: Nuvem de Incerteza (Mecânica Quântica Simples)
+        float r = 0.4 * proceduralHash1(i + t + n*0.1); 
+        float ang = i / max(pCount, 1.0) * PI * 2.0 + t;
+        pos = vec2(r * cos(ang * params.x + n), r * sin(ang * params.y - n));
+
+    } else { 
+        // 68: Singularidade Absoluta Primordial
+        float r = 0.5 * abs(sin(t * 10.0 + n)) * proceduralHash1(i + n);
+        pos = vec2(r * cos(a * params.x), r * sin(a * params.y)) * (1.0 + sin(t + n));
     }
     return pos;
   }

@@ -793,8 +793,65 @@
         float ang = i / max(pCount, 1.0) * PI * 2.0 + t;
         pos = vec2(r * cos(ang * params.x + n), r * sin(ang * params.y - n));
 
-    } else { 
+    } else if (type == 68) { 
         // 68: Singularidade Absoluta Primordial
+        float r = 0.5 * abs(sin(t * 10.0 + n)) * proceduralHash1(i + n);
+        pos = vec2(r * cos(a * params.x), r * sin(a * params.y)) * (1.0 + sin(t + n));
+
+    } else if (type == 69) {
+        // 69: Epitrocóide / Spirograph Genuíno (R, r, d)
+        float R = params.x + 0.1; float r = params.y * 0.5 + 0.1; float d = params.z * 0.5 + n*0.1;
+        pos = vec2((R+r)*cos(a) - d*cos((R+r)/r * a), (R+r)*sin(a) - d*sin((R+r)/r * a)) * 0.2;
+    } else if (type == 70) {
+        // 70: Rosa de Maurizio (Rhodonea Numérica P/Q)
+        float k = params.x / (params.y + 0.01) + n*0.2; 
+        float r = 0.4 * sin(k * a * 5.0 + t);
+        pos = vec2(r * cos(a), r * sin(a));
+    } else if (type == 71) {
+        // 71: Fermat / Phyllotaxis Semente de Girassol (Ângulo de Ouro)
+        float aa = i / max(pCount, 1.0);
+        float golden = 137.508 * (PI/180.0) + n*0.1;
+        float ang = i * golden + t*0.5;
+        float r = 0.4 * sqrt(aa) * params.x;
+        pos = vec2(r * cos(ang), r * sin(ang));
+    } else if (type == 72) {
+        // 72: Estrofoide Clássica de Newton (Nó Retorcido)
+        float x = 0.3 * (params.x*1.5) * (pow(cos(a*2.0), 2.0) - pow(sin(a*2.0), 2.0)) / (1.0 + pow(sin(a), 2.0));
+        float y = x * tan(a + n);
+        pos = vec2(x, y);
+    } else if (type == 73) {
+        // 73: Folium Cíclico de Descartes Modificado
+        float pt = tan(a + n);
+        float x = 3.0 * params.x * pt / (1.0 + pow(pt, 3.0));
+        float y = 3.0 * params.y * pow(pt, 2.0) / (1.0 + pow(pt, 3.0));
+        pos = vec2(x, y) * 0.1;
+    } else if (type == 74) {
+        // 74: Campo de Fluxo Vetorial Simplificado (Linhas Magnéticas B)
+        float x = (i / max(pCount, 1.0)) * 2.0 - 1.0; 
+        float R_dist2 = x*x + params.y*params.y + 0.1;
+        float Bx = 3.0 * x * params.y / pow(R_dist2, 1.5);
+        float By = (2.0 * params.y * params.y - x*x) / pow(R_dist2, 1.5);
+        pos = vec2(Bx, By) * 0.05 * params.x + vec2(0.0, 0.2*sin(a*10.0+t));
+    } else if (type == 75) {
+        // 75: Superelipse Dinâmica (Curva de Lamé / Squircle ou Star)
+        float p = params.z * 5.0 + 0.1 + n;
+        float r = pow(pow(abs(cos(a*params.x)), p) + pow(abs(sin(a*params.y)), p), -1.0/p);
+        pos = vec2(r * cos(a), r * sin(a)) * 0.25;
+    } else if (type == 76) {
+        // 76: Borboleta Tríplice Estendida (Variações Transcendentes Extremas)
+        float r = exp(cos(a*params.x)) - 2.0 * cos(4.0 * a * params.y) + pow(sin((a+n)/12.0), 5.0);
+        pos = vec2(r * cos(a + t), r * sin(a + t)) * 0.1;
+    } else if (type == 77) {
+        // 77: Projeção Harmônica Esférica Pura Z=0 S2
+        float r = 0.4 * sin(params.y * a + t) * (1.0 - cos(params.z * a + n));
+        pos = vec2(r * cos(params.x*a), r * sin(params.x*a));
+    } else if (type == 78) {
+        // 78: Atrator Projeção Planar Lorenz-Like
+        float x = sin(a * params.y * 3.0 + t);
+        float y = sin(a * params.x * 2.0 + t + PI/2.0) * cos(a * params.z + n);
+        pos = vec2(x + y*0.2, y - x*0.2) * 0.3;
+    } else { 
+        // 79 a 127: RESTANTE DA ZONA FANTASMA (Singularidade)
         float r = 0.5 * abs(sin(t * 10.0 + n)) * proceduralHash1(i + n);
         pos = vec2(r * cos(a * params.x), r * sin(a * params.y)) * (1.0 + sin(t + n));
     }
@@ -1251,7 +1308,18 @@ function getCurveMeta(id) {
         if (id == 68) return { name: "A Singularidade Primordial de Ruído Central", family: "Mapeamento Espectral Limitado e Saturado", cls: "Modelagem de Campo Físico e Entropia Universal" };
     }
 
-    if (id >= 69 && id <= 127) return { name: "VÁCUO GEOMÉTRICO " + id, family: "ZONA FANTASMA NO SHADER", cls: "NENHUMA EQUAÇÃO DETECTADA - Retornando [Singularidade Primordial Padrão]" };
+    if (id == 69) return { name: "O Grande Epitrocóide de Dürer", family: "Roleta Paramétrica Perfeita", cls: "Cinemática de Curvas / Spirograph Geométrico" };
+    if (id == 70) return { name: "A Rosa Numérica Aberta (Curva Rhodonea)", family: "Expansão Polar Transcendente", cls: "Construção de Botânica Euclidiana Abstrata" };
+    if (id == 71) return { name: "O Nascimento de Fermat (Sementes de Girassol)", family: "Phyllotaxis pelo Ângulo de Ouro Áureo", cls: "Botânica Natural Paramétrica (Padrões Naturais)" };
+    if (id == 72) return { name: "A Estrofoide Clássica Paramétrica de Newton", family: "Nós Geométricos Torcidos Cartesianos", cls: "Topologia Singular / Curvas Algébricas" };
+    if (id == 73) return { name: "O Sublime Folium de Descartes (Projeção Cíclica)", family: "Laço Cúbico Algébrico Assintótico", cls: "Estudo Cúbico Algébrico Essencial" };
+    if (id == 74) return { name: "Campo de Fluxo de Maxwell Bidimensional", family: "Dinâmica Simétrica de Linhas Magnéticas (Dipolo)", cls: "Eletrodinâmica Computacional (Física Escalar)" };
+    if (id == 75) return { name: "A Mutável Superelipse Geodésica de Lamé", family: "Transição Exponencial Círculo -> Quadrado (Squircle)", cls: "Curvação Racional Computacional e Design" };
+    if (id == 76) return { name: "A Borboleta Tríplice Estendida e Transmutável", family: "Variação Complexa Superior de Equação Transcendental", cls: "Modelagem Trigonométrica Extrema" };
+    if (id == 77) return { name: "Onda de Projeção Esférica Ocular Z=0", family: "Harmônica Esférica Pura Sem Fuga R-Zero", cls: "Física Básica Estática e Projetiva 2D" };
+    if (id == 78) return { name: "Projeção Pseudo-Fractal do Clássico Lorenz", family: "Mapeamento Linear Cruzado de Atrator Climático Clássico", cls: "Teoria do Caos Dinâmica (Padrões Climáticos e Turbulência)" };
+
+    if (id >= 79 && id <= 127) return { name: "VÁCUO GEOMÉTRICO " + id, family: "ZONA FANTASMA NO SHADER", cls: "NENHUMA EQUAÇÃO DETECTADA - Retornando [Singularidade Padrão]" };
 
     if (id == 128) return { name: "Sintetizador de Episiclos de Fourier", family: "Análise Harmônica Discreta e Somatórios Perversos", cls: "Acústica Física de Sinais e Propagação de Ondas" };
     if (id == 129) return { name: "Nó de Lissajous 3D Intercambiável", family: "Equações Curvas Toroidais Amarradas Analiticamente", cls: "Topologia Matemática Paramétrica de Alto Eixo" };

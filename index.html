@@ -501,6 +501,10 @@
       <label style="color: #00ffaa;">HARMÔNICO (Constante K) <span id="val-k">1.0</span></label>
       <input type="range" min="0.0" max="32.0" step="0.5" value="1.0" id="sld-k" oninput="updateEditor()">
     </div>
+    <div class="slider-row" style="margin-bottom: 12px; border-top: 1px solid rgba(0,242,255,0.2); padding-top: 12px;">
+      <label style="color: #ff3366;">MASSA MÁGICA (PARTÍCULAS) <span id="val-mass-sld">10</span></label>
+      <input type="range" min="10" max="300" step="1" value="10" id="sld-mass" oninput="updateMassManual()">
+    </div>
     <div class="slider-row">
       <label>TAMANHO DO PONTO <span id="val-ps">0.004</span></label>
       <input type="range" min="0.001" max="0.015" step="0.001" value="0.004" id="sld-ps" oninput="updateEditor()">
@@ -950,10 +954,7 @@
     float sizeFactor = pParticles / 300.0;
     float weaknessPenalty = (1.0 - pDamage * 0.8);
     float localSat = saturation * (0.5 + 0.5 * sizeFactor) * weaknessPenalty + pGlow;
-    
-    // BALANCEAMENTO TERMODINÂMICO DE LUZ: Atenua o brilho aditivo em altas densidades
-    float baseBri = (brightness * (0.5 + 0.5 * sizeFactor) + pGlow * 1.5) * weaknessPenalty;
-    float localBri = baseBri / (1.0 + sizeFactor * 3.5); // Divide o brilho por até 4.5x quando tem 300 partículas
+    float localBri = (brightness * (0.5 + 0.5 * sizeFactor) + pGlow * 1.5) * weaknessPenalty;
     
     for(float i = 0.0; i < 300.0; i++) {
         if (i >= pParticles) break;
@@ -1004,8 +1005,7 @@
         float oWeak = 1.0 - otherDamage[k] * 0.8;
         float oGL = otherGlow[k];
         float oSat = saturation * (0.5 + 0.5 * oSizeFactor) * 0.7 * oWeak + oGL;
-        float oBaseBri = (brightness * (0.5 + 0.5 * oSizeFactor) + oGL * 1.5) * oWeak;
-        float oBri = oBaseBri / (1.0 + oSizeFactor * 3.5); // Atenua supernovas inimigas
+        float oBri = (brightness * (0.5 + 0.5 * oSizeFactor) + oGL * 1.5) * oWeak;
         
         float maxP = min(oPart, otherLimit); 
         for(float i = 0.0; i < 60.0; i++) {
@@ -1092,6 +1092,11 @@ let uExpPos, uExpTime;
 
 let explosions = []; // { x, y, start }
 const MAX_EXP = 5;
+
+function updateMassManual() {
+    myParticles = parseInt(document.getElementById('sld-mass').value);
+    document.getElementById('val-mass-sld').textContent = myParticles;
+}
 
 function updateEditor() {
     pRes = parseFloat(document.getElementById('sld-ps').value);
@@ -1581,35 +1586,31 @@ function gameTick() {
     else if (m >= 35) { name = "A ESTRELA"; cls = "PRIMORDIAL"; curve = 5; }
     else { name = "O VIAJANTE ZERO"; cls = "PRIMORDIAL"; curve = 1; }
 
-    if (pTypeOverride !== -1) {
-        myCurve = pTypeOverride;
-        name = "LAB. EXPERIMENTAL";
-        cls = "SOBRESCRITO MANUAL";
-    } else {
-        myCurve = curve;
-    }
+    myCurve = curve;
 
     // Atualizar HUD Geométrico
     if (document.getElementById('hud-class')) {
         document.getElementById('hud-class').textContent = cls;
-        document.getElementById('hud-curve').textContent = myCurve + " (" + name + ")";
+        document.getElementById('hud-curve').textContent = curve + " (" + name + ")";
         document.getElementById('hud-mass').textContent = Math.floor(m);
+        document.getElementById('sld-mass').value = Math.floor(m);
+        document.getElementById('val-mass-sld').textContent = Math.floor(m);
         
         // Mapear XYZ aproximado usado no shader para cada tipo
         let xyz = "1.0, 1.0, 1.0";
-        if (myCurve === 0) xyz = "4.0, 1.0, 3.0";
-        else if (myCurve === 2) xyz = "2.0, 1.0, 1.0";
-        else if (myCurve === 3) xyz = "5.0, 2.0, 4.0";
-        else if (myCurve === 4) xyz = "3.0, 1.0, 2.0";
-        else if (myCurve === 5) xyz = "6.0, 1.0, 1.5";
-        else if (myCurve === 7) xyz = "8.0, 3.0, 5.0";
-        else if (myCurve === 8) xyz = "7.0, 1.0, 0.5";
+        if (curve === 0) xyz = "4.0, 1.0, 3.0";
+        else if (curve === 2) xyz = "2.0, 1.0, 1.0";
+        else if (curve === 3) xyz = "5.0, 2.0, 4.0";
+        else if (curve === 4) xyz = "3.0, 1.0, 2.0";
+        else if (curve === 5) xyz = "6.0, 1.0, 1.5";
+        else if (curve === 7) xyz = "8.0, 3.0, 5.0";
+        else if (curve === 8) xyz = "7.0, 1.0, 0.5";
         document.getElementById('hud-xyz').textContent = xyz;
 
         const relSpeed = Math.sqrt(playerVelX*playerVelX + playerVelY*playerVelY) * 1000;
-        // Parâmetros Técnicos (Sincronizados com o Shader)
-        const currentSat = (1.3 * (0.5 + 0.5 * (m/300)) * (1.0 - myDamage * 0.8)).toFixed(2);
-        const currentBri = ((1.1 * (0.5 + 0.5 * (m/300)) + myGlow * 1.5) * (1.0 - myDamage * 0.8)).toFixed(2);
+        // Parâmetros Técnicos (Sincronizados com o Shader usando as variáveis do Editor)
+        const currentSat = (pSatBase * (0.5 + 0.5 * (m/300)) * (1.0 - myDamage * 0.8)).toFixed(2);
+        const currentBri = ((pAura * (0.5 + 0.5 * (m/300)) + myGlow * 1.5) * (1.0 - myDamage * 0.8)).toFixed(2);
         document.getElementById('hud-sat').textContent = currentSat;
         document.getElementById('hud-bri').textContent = currentBri;
         document.getElementById('hud-spin').textContent = "x" + (1.0 + (relSpeed / 100)).toFixed(2);
@@ -1682,11 +1683,7 @@ function render(now = 0) {
     gl.uniform1f(uPFlo, pFlo);
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, 0, 0); gl.uniform2f(uPVel, playerVelX, playerVelY);
-    
-    // SE MÓDULO LABORATÓRIO (MANUAL) ATIVO, USA RENDERAÇÃO MÁXIMA PARA A CURVA
-    let renderMassa = (pTypeOverride !== -1) ? 300.0 : myParticles;
-    gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, renderMassa);
-    
+    gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);
     gl.uniform1f(uPDamage, myDamage);
     gl.uniform1f(uPGlow, myGlow);
     gl.uniform1f(uPHeart, (Date.now() % (4000 / pSpinMult)) / (4000 / pSpinMult));

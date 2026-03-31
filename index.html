@@ -210,6 +210,28 @@
     color: #444;
   }
 
+  /* LABELS */
+  #labels-container {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 50;
+  }
+  .player-label {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 8px;
+      border-radius: 10px;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: bold;
+      border: 1px solid var(--primary);
+      pointer-events: none;
+      transform: translate(-50%, -100%);
+      white-space: nowrap;
+      box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+  }
+
   /* DASH BAR */
   #dash-bar {
       position: absolute;
@@ -300,6 +322,7 @@
     <h3>VIAJANTES</h3>
     <div id="playersItems"></div>
   </div>
+  <div id="labels-container"></div>
   <div id="fps">FPS: 0</div>
 </div>
 
@@ -330,6 +353,9 @@
   uniform int numFood;
   uniform float pDamage; // Estado de fraqueza local
   uniform float pGlow;  // ESTADO DE BRILHO EXTRA LOCAL
+  uniform float pHeart; // PONTO VITAL LOCAL
+  
+  uniform float otherHeart[50]; // PONTOS VITAIS INIMIGOS
   
   #define PI 3.14159265359
 
@@ -391,7 +417,13 @@
         float dragWeight = pow(i / max(pParticles, 1.0), 1.5) * 20.0; 
         pos = pos + pPos - (pVel * dragWeight);
         float d = length(uv - pos);
-        outColor += getSpirographColor(t, i, localSat) * (0.004 / (d + 0.001)) * localBri;
+        
+        // CORAÇÃO LUMINOSO LOCAL
+        float heartGlow = 0.0;
+        float distToHeart = abs(i / max(pParticles, 1.0) - pHeart);
+        if (distToHeart < 0.07) heartGlow = (0.04 / (d + 0.001)) * (0.5 + 0.5 * sin(time * 10.0));
+
+        outColor += getSpirographColor(t, i, localSat) * ((0.004 / (d + 0.001)) * localBri + heartGlow);
     }
 
     // 3. Render Other Players
@@ -417,7 +449,13 @@
             float dragWeight = pow(i / maxP, 1.5) * 20.0;
             pos = pos + oRelative - (oVel * dragWeight);
             float d = length(uv - pos);
-            outColor += getSpirographColor(t + float(k), i, oSat) * (0.002 / (d + 0.001)) * oBri;
+
+            // CORAÇÃO LUMINOSO INIMIGO
+            float oHeartGlow = 0.0;
+            float distToOHeart = abs(i / maxP - otherHeart[k]);
+            if (distToOHeart < 0.07) oHeartGlow = (0.03 / (d + 0.001)) * (0.5 + 0.5 * sin(time * 10.0 + float(k)));
+
+            outColor += getSpirographColor(t + float(k), i, oSat) * ((0.002 / (d + 0.001)) * oBri + oHeartGlow);
         }
     }
     gl_FragColor = vec4(outColor * brightness, 1.0);
@@ -460,9 +498,9 @@ let foods = [];
 let channel;
 let lastPlayersMass = {};
 
-let uTime, uRes, uSat, uBri, uOtherLimit, uCameraPos, uPDamage, uPGlow;
+let uTime, uRes, uSat, uBri, uOtherLimit, uCameraPos, uPDamage, uPGlow, uPHeart;
 let uPPos, uPVel, uPCurve, uPPart;
-let uOtherPos, uOtherVel, uOtherCurve, uOtherPart, uNumOthers, uOtherDamage, uOtherGlow;
+let uOtherPos, uOtherVel, uOtherCurve, uOtherPart, uNumOthers, uOtherDamage, uOtherGlow, uOtherHeart;
 let uFoodPos, uFoodHue, uNumFood;
 
 function toggleSettings() {
@@ -533,6 +571,8 @@ function initWebGL() {
     uOtherDamage = gl.getUniformLocation(program, 'otherDamage');
     uPGlow = gl.getUniformLocation(program, 'pGlow');
     uOtherGlow = gl.getUniformLocation(program, 'otherGlow');
+    uPHeart = gl.getUniformLocation(program, 'pHeart');
+    uOtherHeart = gl.getUniformLocation(program, 'otherHeart');
     
     // Minimap Init
     minimapCanvas = document.getElementById('minimap-canvas');
@@ -600,10 +640,11 @@ function initMultiplayer() {
     });
     setInterval(() => {
         if (isPlaying) {
+            let myHeart = (Date.now() % 4000) / 4000; // Pulso do coração
             channel.send({ 
                 type: 'broadcast', 
                 event: 'pos', 
-                payload: { id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, c: myCurve, p: myParticles, d: myDamage, g: myGlow } 
+                payload: { id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, c: myCurve, p: myParticles, d: myDamage, g: myGlow, h: myHeart, s: score } 
             });
         }
     }, 40);
@@ -713,14 +754,19 @@ function gameTick() {
         let o = others[id];
         let d = Math.sqrt((playerX - o.x)**2 + (playerY - o.y)**2);
         
-        // Mecânica de comer (Drenagem por proximidade)
-        if (d < catchRadius * 1.2) {
-            // Eu estou perto do centro dele, eu começo a "comer"
-            channel.send({ type: 'broadcast', event: 'drain', payload: { target: id, attacker: myName } });
-            if (myParticles < MAX_PARTICLES) myParticles += 0.5;
-            myGlow = Math.min(1.2, myGlow + 0.04); // Brilho de combate contínuo!
+        // HEART DETECTION: Se eu acertar o centro dele no coração luminoso
+        let oHeartPos = getHeartWorldPos(o);
+        let distToHeart = Math.sqrt((playerX - oHeartPos.x)**2 + (playerY - oHeartPos.y)**2);
+
+        // Mecânica de comer (Sempre que perto drena, mas no coração drena muito mais)
+        if (d < catchRadius * 1.5) {
+            let drainAmt = (distToHeart < 0.15) ? 5.0 : 0.8;
+            channel.send({ type: 'broadcast', event: 'drain', payload: { target: id, attacker: myName, amt: drainAmt } });
+            if (myParticles < MAX_PARTICLES) myParticles += (distToHeart < 0.15 ? 2.0 : 0.5);
+            myGlow = Math.min(1.2, myGlow + 0.04);
             score += 1;
             document.getElementById('score').textContent = score;
+            if (distToHeart < 0.15) showMsg("DRENANDO CORAÇÃO DE " + id.toUpperCase() + "!");
         }
 
         if (d < catchRadius * 1.5 && isDashing && (playerVelX*playerVelX + playerVelY*playerVelY) > 0.0001) {
@@ -753,6 +799,7 @@ function render(now = 0) {
     gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);
     gl.uniform1f(uPDamage, myDamage);
     gl.uniform1f(uPGlow, myGlow);
+    gl.uniform1f(uPHeart, (Date.now() % 4000) / 4000);
 
     const q = settings[quality];
     gl.uniform1f(uOtherLimit, q.otherLimit);
@@ -766,6 +813,7 @@ function render(now = 0) {
         gl.uniform1f(gl.getUniformLocation(program, `otherParticles[${i}]`), o.p);
         gl.uniform1f(gl.getUniformLocation(program, `otherDamage[${i}]`), o.d || 0);
         gl.uniform1f(gl.getUniformLocation(program, `otherGlow[${i}]`), o.g || 0);
+        gl.uniform1f(gl.getUniformLocation(program, `otherHeart[${i}]`), o.h || 0);
     });
     gl.uniform1i(uNumFood, foods.length);
     foods.forEach((f, i) => {
@@ -774,8 +822,51 @@ function render(now = 0) {
     });
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     
+    updateLabels();
     drawMinimap();
     requestAnimationFrame(render);
+}
+
+function updateLabels() {
+    const container = document.getElementById('labels-container');
+    if (!container) return;
+    const labels = container.querySelectorAll('.player-label');
+    const existingIds = Array.from(labels).map(l => l.dataset.id);
+    
+    // Add missing
+    Object.keys(others).forEach(id => {
+        if (!existingIds.includes(id)) {
+            const l = document.createElement('div');
+            l.className = 'player-label';
+            l.textContent = id;
+            l.dataset.id = id;
+            container.appendChild(l);
+        }
+    });
+
+    // Remove old
+    labels.forEach(l => {
+        if (!others[l.dataset.id]) l.remove();
+        else {
+            const o = others[l.dataset.id];
+            const screenPos = worldToScreen(o.x, o.y);
+            l.style.left = screenPos.x + 'px';
+            l.style.top = (screenPos.y - 40) + 'px';
+        }
+    });
+}
+
+function worldToScreen(wx, wy) {
+    const cameraX = playerX, cameraY = playerY;
+    const minR = Math.min(window.innerWidth, window.innerHeight);
+    const screenX = (wx - cameraX) * minR + window.innerWidth * 0.5;
+    const screenY = (cameraY - wy) * minR + window.innerHeight * 0.5;
+    return { x: screenX, y: screenY };
+}
+
+function getHeartWorldPos(o) {
+    // Calculamos onde o coracao estaria no mundo aproximado para colisao
+    return { x: o.x, y: o.y }; // Simplificado para performance de colisao
 }
 
 function drawMinimap() {

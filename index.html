@@ -471,7 +471,7 @@
     <h3>Laboratório Criativo</h3>
     <div class="slider-row">
       <label>TIPO DE CURVA (FORÇAR) <span id="val-type">5</span></label>
-      <input type="range" min="0" max="47" step="1" value="5" id="sld-type" oninput="updateEditor()">
+      <input type="range" min="0" max="63" step="1" value="5" id="sld-type" oninput="updateEditor()">
     </div>
     <div class="slider-row" style="display:flex; justify-content:space-between; gap:5px;">
       <div style="flex:1">
@@ -845,7 +845,83 @@
     }
     else if (type == 47) { // SINGULARIDADE (Point Inversion)
         float a = i / max(pCount, 1.0) * PI * 2.0 + t;
-        float r = 0.8 * exp(-abs(sin(t*params.x)) * 5.0);
+        float r = 0.8 * exp(-abs(sin(t * params.x)) * 5.0);
+        pos = vec2(r * cos(a), r * sin(a));
+    }
+    else if (type == 48) { // ATRATOTOR DE AIZAWA
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        float r = 0.3 * (0.8 + 0.2 * sin(a * 4.0)) * params.x;
+        pos = vec2(r * cos(a * params.y), r * sin(a * params.z));
+    }
+    else if (type == 49) { // CRISTAL DE GELO (Symmetry 6)
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float r = 0.35 * (0.8 + 0.2 * abs(sin(a * 6.0 * params.x + t)));
+        pos = vec2(r * cos(a), r * sin(a));
+    }
+    else if (type == 50) { // VÓRTICE DE CORAÇÃO
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        float r = 0.4 * (1.0 - sin(a)) * params.x;
+        pos = vec2(r * cos(a * params.y), r * sin(a * params.z));
+    }
+    else if (type == 51) { // PULSAR BINÁRIO
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        float r = (mod(i, 2.0) == 0.0) ? 0.3 : 0.1;
+        pos = vec2(r * cos(a * params.x), r * sin(a * params.y));
+    }
+    else if (type == 52) { // DISCO DE ACREÇÃO (Black Hole)
+        float a = i / max(pCount, 1.0) * PI * 6.0 + t;
+        float r = 0.2 + 0.3 * (i / max(pCount, 1.0));
+        pos = vec2(r * cos(a), r * sin(a) * 0.3 * params.x);
+    }
+    else if (type == 53) { // LABIRINTO XOR (Binary Logic)
+        vec2 p = vec2(i / max(pCount, 1.0), fract(t * 0.1));
+        float xor = fract(sin(dot(floor(p * 20.0 * params.x), vec2(12.9898, 78.233))) * 43758.5453);
+        pos = (vec2(xor, fract(xor * 1.5)) - 0.5) * 0.8;
+    }
+    else if (type == 54) { // ONDA DE PLASMA (Fluid)
+        float a = (i / max(pCount, 1.0)) * PI * 2.0;
+        pos = vec2(0.4 * cos(a + sin(t + a * params.x)), 0.4 * sin(a + cos(t + a * params.y)));
+    }
+    else if (type == 55) { // ESTRELA DE PRÉ-NÊUTRONS
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float r = 0.3 * (1.0 + 0.5 * sin(a * 12.0 + t * 4.0)) * params.x;
+        pos = vec2(r * cos(a), r * sin(a));
+    }
+    else if (type == 56) { // CALEIDOSCÓPIO BINÁRIO
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float seg = floor(params.x * 12.0);
+        float a2 = floor(a * seg) / seg + t;
+        pos = vec2(0.4 * cos(a2), 0.4 * sin(a2));
+    }
+    else if (type == 57) { // PÉTALAS DE LUZ (Rose 2)
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        float r = 0.4 * cos(params.x * a);
+        pos = vec2(r * cos(a), r * sin(a));
+    }
+    else if (type == 58) { // CASCATA DE BITS 2
+        float a = i / max(pCount, 1.0);
+        pos = vec2(fract(a * 10.0 + t) * 0.8 - 0.4, (proceduralHash1(i) - 0.5) * 0.8);
+    }
+    else if (type == 59) { // HIPER-TORO
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float r = 0.3 + 0.1 * sin(t + a * params.x);
+        pos = vec2(r * cos(a * params.y + t), r * sin(a * params.z + t));
+    }
+    else if (type == 60) { // NÓ DE DRAGÃO
+        float a = i / max(pCount, 1.0) * PI * 10.0 + t;
+        pos = vec2(sin(a * params.x) + sin(a * 2.0), cos(a * params.y) + cos(a * 2.0)) * 0.15;
+    }
+    else if (type == 61) { // SINAL DE RÁDIO (Frequency)
+        float a = (i / max(pCount, 1.0) - 0.5) * 2.0;
+        pos = vec2(a * 0.8, 0.3 * sin(a * 50.0 + t * 10.0) * exp(-a * a * params.x));
+    }
+    else if (type == 62) { // ÓRBITA DE ELÉTRONS
+        float a = t * 2.0 + i * 0.5;
+        pos = vec2(0.4 * cos(a * params.x), 0.2 * sin(a * params.y));
+    }
+    else if (type == 63) { // A SINGULARIDADE FINAL (Entropy)
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        float r = 0.1 + 0.4 * proceduralHash1(i + t);
         pos = vec2(r * cos(a), r * sin(a));
     }
     return pos;
@@ -1063,8 +1139,8 @@ function updateEditor() {
 }
 
 function applyChaos() {
-    // ALEATORIEDADE PURA (AGRESSIVO)
-    document.getElementById('sld-type').value = Math.floor(Math.random() * 9);
+    // ALEATORIEDADE PURA (DIVINA)
+    document.getElementById('sld-type').value = Math.floor(Math.random() * 64);
     document.getElementById('sld-x').value = (Math.random() * 10).toFixed(1);
     document.getElementById('sld-y').value = (Math.random() * 10).toFixed(1);
     document.getElementById('sld-z').value = (Math.random() * 10).toFixed(1);

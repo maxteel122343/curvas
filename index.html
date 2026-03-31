@@ -616,15 +616,22 @@
   </div>
   <div id="labels-container"></div>
   <div id="fps">FPS: 0</div>
+  
+  <div style="position: absolute; bottom: 20px; left: 20px; display: flex; gap: 10px;">
+    <button onclick="toggleBackground()" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(0,242,255,0.3); color: var(--primary); padding: 5px 15px; border-radius: 20px; cursor: pointer; backdrop-filter: blur(5px); font-family: 'Outfit'; font-size: 10px; text-transform: uppercase;">Mudar Fundo (Ativo: Lab)</button>
+  </div>
 </div>
 
 <script type="x-shader/x-fragment" id="fragmentShader">
   precision highp float;
   uniform float time;
   uniform vec2 resolution;
+  uniform vec2 uCameraPos;
+  uniform int uBgMode; // 0 = Laboratorio (Grid), 1 = Cosmos (Espaço Profundo)
+
+  // PROPRIEDADES DA TELA
   uniform float saturation;
   uniform float brightness;
-  uniform vec2 uCameraPos;
 
   uniform vec2 pPos;
   uniform vec2 pVel;
@@ -1118,13 +1125,28 @@
     float t = time * 0.8;
     
     vec2 gridUv = uv + uCameraPos; 
-    float grid = 0.0;
-    grid += smoothstep(0.495, 0.5, abs(fract(gridUv.x * 2.0) - 0.5));
-    grid += smoothstep(0.495, 0.5, abs(fract(gridUv.y * 2.0) - 0.5));
-    outColor += vec3(0.05, 0.15, 0.3) * grid * 0.4;
     
-    float star = fract(sin(dot(floor(gridUv * 5.0), vec2(12.9898, 78.233))) * 43758.5453);
-    if(star > 0.99) outColor += vec3(0.6) * star;
+    if (uBgMode == 0) {
+        // MODO 0: LABORATÓRIO (Grade Geométrica)
+        float grid = 0.0;
+        grid += smoothstep(0.495, 0.5, abs(fract(gridUv.x * 2.0) - 0.5));
+        grid += smoothstep(0.495, 0.5, abs(fract(gridUv.y * 2.0) - 0.5));
+        outColor += vec3(0.05, 0.15, 0.3) * grid * 0.4;
+        float star = fract(sin(dot(floor(gridUv * 5.0), vec2(12.9898, 78.233))) * 43758.5453);
+        if(star > 0.99) outColor += vec3(0.6) * star;
+    } else {
+        // MODO 1: COSMOS (Espaço Profundo com Nebulosa e Esferas Brilhantes)
+        // Nebulosa de fundo baratíssima (apenas seno suave)
+        outColor += vec3(0.02, 0.0, 0.05) * (0.5 + 0.5 * sin(gridUv.x * 0.5 + t * 0.2));
+        outColor += vec3(0.0, 0.03, 0.04) * (0.5 + 0.5 * cos(gridUv.y * 0.6 - t * 0.1));
+        
+        // Estrelas cintilantes intensas
+        float star = fract(sin(dot(floor(gridUv * 8.0), vec2(12.9898, 78.233))) * 43758.5453);
+        if(star > 0.97) {
+            float blink = 0.5 + 0.5 * sin(t * 3.0 + star * 100.0);
+            outColor += vec3(0.5, 0.8, 1.0) * blink; // Esferas/Estrelas brilhantes coloridas
+        }
+    }
 
     for(int j = 0; j < 100; j++) {
         if (j >= numFood) break;
@@ -1264,6 +1286,7 @@ let myCurve = 5;
 let myParticles = 10;
 const MAX_PARTICLES = 300;
 const MAP_SIZE = 8.0; 
+let bgMode = 0; // 0 = Lab, 1 = Cosmos
 
 let others = {}; 
 let foods = [];   
@@ -1278,6 +1301,11 @@ let uExpPos, uExpTime;
 
 let explosions = []; // { x, y, start }
 const MAX_EXP = 5;
+
+function toggleBackground() {
+    bgMode = bgMode === 0 ? 1 : 0;
+    event.target.textContent = bgMode === 0 ? "Mudar Fundo (Ativo: Lab)" : "Mudar Fundo (Ativo: Espaço)";
+}
 
 function updateMassManual() {
     myParticles = parseInt(document.getElementById('sld-mass').value);
@@ -2009,6 +2037,7 @@ function render(now = 0) {
     gl.uniform1f(gl.getUniformLocation(program, 'pW'), pW);
     gl.uniform3f(gl.getUniformLocation(program, 'pColor'), pColor[0], pColor[1], pColor[2]);
     gl.uniform1f(uPFlo, pFlo);
+    gl.uniform1i(gl.getUniformLocation(program, 'uBgMode'), bgMode);
     
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, renderPx, renderPy); 

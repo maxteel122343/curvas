@@ -1577,23 +1577,29 @@ function gameTick() {
     else if (m >= 35) { name = "A ESTRELA"; cls = "PRIMORDIAL"; curve = 5; }
     else { name = "O VIAJANTE ZERO"; cls = "PRIMORDIAL"; curve = 1; }
 
-    myCurve = curve;
+    if (pTypeOverride !== -1) {
+        myCurve = pTypeOverride;
+        name = "LAB. EXPERIMENTAL";
+        cls = "SOBRESCRITO MANUAL";
+    } else {
+        myCurve = curve;
+    }
 
     // Atualizar HUD Geométrico
     if (document.getElementById('hud-class')) {
         document.getElementById('hud-class').textContent = cls;
-        document.getElementById('hud-curve').textContent = curve + " (" + name + ")";
+        document.getElementById('hud-curve').textContent = myCurve + " (" + name + ")";
         document.getElementById('hud-mass').textContent = Math.floor(m);
         
         // Mapear XYZ aproximado usado no shader para cada tipo
         let xyz = "1.0, 1.0, 1.0";
-        if (curve === 0) xyz = "4.0, 1.0, 3.0";
-        else if (curve === 2) xyz = "2.0, 1.0, 1.0";
-        else if (curve === 3) xyz = "5.0, 2.0, 4.0";
-        else if (curve === 4) xyz = "3.0, 1.0, 2.0";
-        else if (curve === 5) xyz = "6.0, 1.0, 1.5";
-        else if (curve === 7) xyz = "8.0, 3.0, 5.0";
-        else if (curve === 8) xyz = "7.0, 1.0, 0.5";
+        if (myCurve === 0) xyz = "4.0, 1.0, 3.0";
+        else if (myCurve === 2) xyz = "2.0, 1.0, 1.0";
+        else if (myCurve === 3) xyz = "5.0, 2.0, 4.0";
+        else if (myCurve === 4) xyz = "3.0, 1.0, 2.0";
+        else if (myCurve === 5) xyz = "6.0, 1.0, 1.5";
+        else if (myCurve === 7) xyz = "8.0, 3.0, 5.0";
+        else if (myCurve === 8) xyz = "7.0, 1.0, 0.5";
         document.getElementById('hud-xyz').textContent = xyz;
 
         const relSpeed = Math.sqrt(playerVelX*playerVelX + playerVelY*playerVelY) * 1000;
@@ -1672,7 +1678,11 @@ function render(now = 0) {
     gl.uniform1f(uPFlo, pFlo);
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, 0, 0); gl.uniform2f(uPVel, playerVelX, playerVelY);
-    gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);
+    
+    // SE MÓDULO LABORATÓRIO (MANUAL) ATIVO, USA RENDERAÇÃO MÁXIMA PARA A CURVA
+    let renderMassa = (pTypeOverride !== -1) ? 300.0 : myParticles;
+    gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, renderMassa);
+    
     gl.uniform1f(uPDamage, myDamage);
     gl.uniform1f(uPGlow, myGlow);
     gl.uniform1f(uPHeart, (Date.now() % (4000 / pSpinMult)) / (4000 / pSpinMult));

@@ -210,6 +210,46 @@
     color: #444;
   }
 
+  /* EDITOR SLIDERS */
+  .editor-group {
+    margin-top: 25px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 20px;
+    text-align: left;
+  }
+  .editor-group h3 {
+    font-size: 12px;
+    color: var(--primary);
+    text-transform: uppercase;
+    margin-bottom: 15px;
+  }
+  .slider-row {
+    margin-bottom: 15px;
+  }
+  .slider-row label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 5px;
+  }
+  input[type=range] {
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    height: 4px;
+    border-radius: 2px;
+    appearance: none;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px; height: 12px;
+    background: var(--primary);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--primary);
+  }
+
   /* LABELS */
   #labels-container {
       position: absolute;
@@ -346,6 +386,27 @@
     <span>ULTRA (8 jogadores)</span>
     <small>Mantenha-se perto dos outros para ver tudo.</small>
   </div>
+  
+  <div class="editor-group">
+    <h3>Laboratório Criativo</h3>
+    <div class="slider-row">
+      <label>TAMANHO DO PONTO <span id="val-ps">0.004</span></label>
+      <input type="range" min="0.001" max="0.015" step="0.001" value="0.004" id="sld-ps" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>AURA (GLOW) <span id="val-aura">1.1</span></label>
+      <input type="range" min="0.5" max="3.0" step="0.1" value="1.1" id="sld-aura" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>VIBRAÇÃO (SPIN) <span id="val-spin">1.0</span></label>
+      <input type="range" min="0.5" max="3.0" step="0.1" value="1.0" id="sld-spin" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>CROMATISMO (SAT) <span id="val-sat">1.3</span></label>
+      <input type="range" min="0.0" max="3.0" step="0.1" value="1.3" id="sld-sat" oninput="updateEditor()">
+    </div>
+  </div>
+
   <button class="start-btn" style="margin-top:20px; padding:10px" onclick="toggleSettings()">Fechar</button>
 </div>
 
@@ -407,6 +468,7 @@
   uniform float pDamage; // Estado de fraqueza local
   uniform float pGlow;  // ESTADO DE BRILHO EXTRA LOCAL
   uniform float pHeart; // PONTO VITAL LOCAL
+  uniform float pRes;   // TAMANHO DOS ÁTOMOS (CONFIGURÁVEL)
   
   uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
   uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
@@ -480,7 +542,7 @@
         float distToHeart = abs(i / max(pParticles, 1.0) - pHeart);
         if (distToHeart < 0.07) heartGlow = (0.04 / (d + 0.001)) * (0.5 + 0.5 * sin(time * 10.0));
 
-        outColor += getSpirographColor(t, i, localSat) * ((0.004 / (d + 0.001)) * localBri + heartGlow);
+        outColor += getSpirographColor(t, i, localSat) * ((pRes / (d + 0.001)) * localBri + heartGlow);
     }
 
     // 3. Render Other Players
@@ -577,6 +639,24 @@ let uExpPos, uExpTime;
 
 let explosions = []; // { x, y, start }
 const MAX_EXP = 5;
+
+// VALORES DO EDITOR CRIATIVO (LABORATÓRIO)
+let pRes = 0.004;
+let pAura = 1.1;
+let pSpinMult = 1.0;
+let pSatBase = 1.3;
+
+function updateEditor() {
+    pRes = parseFloat(document.getElementById('sld-ps').value);
+    pAura = parseFloat(document.getElementById('sld-aura').value);
+    pSpinMult = parseFloat(document.getElementById('sld-spin').value);
+    pSatBase = parseFloat(document.getElementById('sld-sat').value);
+
+    if(document.getElementById('val-ps')) document.getElementById('val-ps').textContent = pRes;
+    if(document.getElementById('val-aura')) document.getElementById('val-aura').textContent = pAura;
+    if(document.getElementById('val-spin')) document.getElementById('val-spin').textContent = pSpinMult;
+    if(document.getElementById('val-sat')) document.getElementById('val-sat').textContent = pSatBase;
+}
 
 function toggleSettings() {
     const p = document.getElementById('settings-panel');
@@ -945,9 +1025,10 @@ function render(now = 0) {
     lastTime = now;
     if (isPlaying) gameTick();
     gl.useProgram(program);
-    gl.uniform1f(uTime, (Date.now() - startTime) * 0.001);
+    gl.uniform1f(uTime, (Date.now() - startTime) * 0.001 * pSpinMult);
     gl.uniform2f(uRes, gl.canvas.width, gl.canvas.height);
-    gl.uniform1f(uSat, 1.3); gl.uniform1f(uBri, 1.1);
+    gl.uniform1f(uSat, pSatBase); gl.uniform1f(uBri, pAura);
+    gl.uniform1f(gl.getUniformLocation(program, 'pRes'), pRes);
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, 0, 0); gl.uniform2f(uPVel, playerVelX, playerVelY);
     gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);

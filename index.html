@@ -779,7 +779,8 @@
         float vx = sin(a*params.x)*cos(aa*10.0+t); float vy = cos(a*params.y)*sin(aa*10.0-t);
         pos = normalize(vec2(vx,vy)) * (0.2 + 0.2*abs(sin(t+aa*PI)));
     } else if (type >= 224 && type <= 239) { // Geometria Não-Euclidiana (Disco de Poincaré)
-        float r = 0.45 * tanh(aa * params.x * 2.0);
+        float tanhArg = aa * params.x * 2.0;
+        float r = 0.45 * (exp(tanhArg) - exp(-tanhArg)) / (exp(tanhArg) + exp(-tanhArg) + 0.0001);
         pos = vec2(r*cos(a + t*params.y), r*sin(a + t*params.z));
     } else if (type >= 240 && type <= 254) { // Turbulência de Alta Dimensão
         float n = proceduralHash1(i + floor(t));

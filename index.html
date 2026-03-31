@@ -351,9 +351,11 @@
   uniform vec2 foodPos[100];
   uniform float foodHue[100];
   uniform int numFood;
-  uniform float pDamage; // Estado de fraqueza local
   uniform float pGlow;  // ESTADO DE BRILHO EXTRA LOCAL
   uniform float pHeart; // PONTO VITAL LOCAL
+  
+  uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
+  uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
   
   uniform float otherHeart[50]; // PONTOS VITAIS INIMIGOS
   
@@ -457,7 +459,21 @@
 
             outColor += getSpirographColor(t + float(k), i, oSat) * ((0.002 / (d + 0.001)) * oBri + oHeartGlow);
         }
+        }
     }
+
+    // 4. EFEITOS DE EXPLOSÃO (SUPERNOVA)
+    for(int n = 0; n < 5; n++) {
+        float p = expTime[n];
+        if (p > 0.0 && p < 1.0) {
+            vec2 rel = expPos[n] - uCameraPos;
+            float dE = length(uv - rel);
+            float r = p * 1.6;
+            float ring = smoothstep(0.12, 0.0, abs(dE - r));
+            outColor += vec3(0.5, 0.9, 1.0) * (ring * 1.5 + (0.1 / (dE + 0.01)) * (1.0 - p)) * (1.0 - p);
+        }
+    }
+
     gl_FragColor = vec4(outColor * brightness, 1.0);
   }
 </script>
@@ -502,6 +518,10 @@ let uTime, uRes, uSat, uBri, uOtherLimit, uCameraPos, uPDamage, uPGlow, uPHeart;
 let uPPos, uPVel, uPCurve, uPPart;
 let uOtherPos, uOtherVel, uOtherCurve, uOtherPart, uNumOthers, uOtherDamage, uOtherGlow, uOtherHeart;
 let uFoodPos, uFoodHue, uNumFood;
+let uExpPos, uExpTime;
+
+let explosions = []; // { x, y, start }
+const MAX_EXP = 5;
 
 function toggleSettings() {
     const p = document.getElementById('settings-panel');
@@ -573,6 +593,8 @@ function initWebGL() {
     uOtherGlow = gl.getUniformLocation(program, 'otherGlow');
     uPHeart = gl.getUniformLocation(program, 'pHeart');
     uOtherHeart = gl.getUniformLocation(program, 'otherHeart');
+    uExpPos = gl.getUniformLocation(program, 'expPos');
+    uExpTime = gl.getUniformLocation(program, 'expTime');
     
     // Minimap Init
     minimapCanvas = document.getElementById('minimap-canvas');
@@ -607,13 +629,21 @@ function initMultiplayer() {
             others[payload.id] = payload; 
         }
     })
+    .on('broadcast', { event: 'die' }, ({ payload }) => {
+        triggerExplosion(payload.x, payload.y);
+        showMsg("VIAJANTE " + payload.id.toUpperCase() + " EXPLODIU!");
+    })
     .on('broadcast', { event: 'eat' }, ({ payload }) => { if (isHost()) respawnFood(payload.index); })
     .on('broadcast', { event: 'hit' }, ({ payload }) => {
         if (payload.target === myName) {
-            myParticles = Math.max(10, myParticles - 20);
-            score = Math.max(0, score - 5);
-            document.getElementById('score').textContent = score;
-            showMsg("ATINGIDO POR " + payload.attacker + "!");
+            if (myParticles <= 15) {
+                die();
+            } else {
+                myParticles = Math.max(10, myParticles - 20);
+                score = Math.max(0, score - 5);
+                document.getElementById('score').textContent = score;
+                showMsg("ATINGIDO POR " + payload.attacker + "!");
+            }
         }
     })
     .on('broadcast', { event: 'drain' }, ({ payload }) => {
@@ -783,6 +813,30 @@ function gameTick() {
     else if (myParticles >= 70) myCurve = 8;
     else if (myParticles >= 30) myCurve = 5;
     else myCurve = 1;
+
+    // Progredir Explosões
+    explosions = explosions.filter(e => {
+        return (Date.now() - e.start) < 1500;
+    });
+}
+
+function die() {
+    channel.send({ type: 'broadcast', event: 'die', payload: { id: myName, x: playerX, y: playerY } });
+    triggerExplosion(playerX, playerY);
+    
+    myParticles = 10;
+    score = Math.floor(score * 0.5);
+    document.getElementById('score').textContent = score;
+    playerX = (Math.random() * 2 - 1) * MAP_SIZE * 0.8;
+    playerY = (Math.random() * 2 - 1) * MAP_SIZE * 0.8;
+    myDamage = 0;
+    myGlow = 0;
+    showMsg("VOCÊ EXPLODIU! RECOMEÇANDO...");
+}
+
+function triggerExplosion(x, y) {
+    if (explosions.length >= MAX_EXP) explosions.shift();
+    explosions.push({ x, y, start: Date.now() });
 }
 
 function render(now = 0) {
@@ -820,6 +874,18 @@ function render(now = 0) {
         gl.uniform2f(gl.getUniformLocation(program, `foodPos[${i}]`), f.x, f.y);
         gl.uniform1f(gl.getUniformLocation(program, `foodHue[${i}]`), f.hue);
     });
+
+    // Passar explosões para o shader de forma rápida
+    for(let n = 0; n < 5; n++) {
+        if (explosions[n]) {
+            const p = (Date.now() - explosions[n].start) / 1500;
+            gl.uniform2f(gl.getUniformLocation(program, `expPos[${n}]`), explosions[n].x, explosions[n].y);
+            gl.uniform1f(gl.getUniformLocation(program, `expTime[${n}]`), p);
+        } else {
+            gl.uniform1f(gl.getUniformLocation(program, `expTime[${n}]`), -1.0);
+        }
+    }
+
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     
     updateLabels();

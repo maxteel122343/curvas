@@ -698,6 +698,12 @@ const SUPABASE_URL = 'https://voavqspdeeepzvckgpjt.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvYXZxc3BkZWVlcHp2Y2tncGp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMTU1NTcsImV4cCI6MjA4OTg5MTU1N30.mFnYYBnc__Q7QmLG8no6lk8Mi9pmOjM_CdZGBUrUG8c';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// VARIÁVEIS GLOBAIS DO LABORATÓRIO (MOVIDAS PARA O TOPO)
+var pRes = 0.004, pAura = 1.1, pSpinMult = 1.0, pFlowMult = 1.0, pSatBase = 1.3;
+var pTypeOverride = -1, pX = 1.0, pY = 1.0, pZ = 1.0;
+var pJitter = 0.0, pTwist = 0.0, pAb = 0.0, pBre = 0.0, pHcy = 1.0, pSke = 1.0;
+var pDen = 1.0, pTai = 1.5, pZoo = 1.0;
+
 let gl, program;
 let minimapCanvas, minimapCtx;
 let startTime, lastTime = 0;
@@ -737,17 +743,6 @@ let uExpPos, uExpTime;
 
 let explosions = []; // { x, y, start }
 const MAX_EXP = 5;
-
-let pRes = 0.004;
-let pAura = 1.1;
-let pSpinMult = 1.0;
-let pFlowMult = 1.0;
-let pSatBase = 1.3;
-let pTypeOverride = -1; // -1 significa evolução automática
-let pX = 1.0, pY = 1.0, pZ = 1.0;
-let pJitter = 0.0, pTwist = 0.0, pAb = 0.0;
-let pBre = 0.0, pHcy = 1.0, pSke = 1.0;
-let pDen = 1.0, pTai = 1.5, pZoo = 1.0;
 
 function updateEditor() {
     pRes = parseFloat(document.getElementById('sld-ps').value);

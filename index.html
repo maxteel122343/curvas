@@ -631,6 +631,9 @@
   
   uniform float otherHeart[50]; // PONTOS VITAIS INIMIGOS
   
+  float proceduralHash1(float n) { return fract(sin(n) * 43758.5453); }
+  vec2 proceduralHash2(float n) { return fract(sin(vec2(n, n + 1.5)) * vec2(43758.5453, 23421.6321)); }
+
   #define PI 3.14159265359
 
   vec3 getSpirographColor(float t, float i, float sat) {
@@ -746,8 +749,8 @@
         pos = vec2(pow(cos(a*params.x), 3.0), pow(sin(a*params.y), 3.0)) * 0.4;
     }
     else if (type == 27) { // NEBULOSA SPARSA (Noise)
-        float id = i + floor(t*10.0);
-        pos = (hash21(id) - 0.5) * 0.8 * params.x;
+        float idVal = i + floor(t * 10.0);
+        pos = (proceduralHash2(idVal) - 0.5) * 0.8 * params.x;
     }
     else if (type == 28) { // CASCATA DE ONDAS
         float a = (i / max(pCount, 1.0)) * 2.0 - 1.0;
@@ -798,7 +801,7 @@
     }
     else if (type == 38) { // CASCATA BITWISE (Digital Rain)
         float a = i / max(pCount, 1.0);
-        pos = vec2((hash21(i)-0.5)*0.8, fract(a * 5.0 + t*params.x) * 0.8 - 0.4);
+        pos = vec2((proceduralHash1(i)-0.5)*0.8, fract(a * 5.0 + t*params.x) * 0.8 - 0.4);
     }
     else if (type == 39) { // ÓRBITAS INTERFERENTES
         float a = i / max(pCount, 1.0) * PI * 2.0;

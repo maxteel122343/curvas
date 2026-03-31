@@ -446,6 +446,18 @@
       <label>ABERRAÇÃO (CHROMA) <span id="val-ab">0.0</span></label>
       <input type="range" min="0.0" max="1.5" step="0.05" value="0.0" id="sld-ab" oninput="updateEditor()">
     </div>
+    <div class="slider-row">
+      <label>RESPIRAÇÃO (BREATH) <span id="val-bre">0.0</span></label>
+      <input type="range" min="0.0" max="3.0" step="0.1" value="0.0" id="sld-bre" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>COLOR CYCLE (HUERATE) <span id="val-hcy">1.0</span></label>
+      <input type="range" min="0.0" max="5.0" step="0.1" value="1.0" id="sld-hcy" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>ASSIMETRIA (SKEW) <span id="val-ske">1.0</span></label>
+      <input type="range" min="0.2" max="2.0" step="0.05" value="1.0" id="sld-ske" oninput="updateEditor()">
+    </div>
   </div>
 
   <button class="start-btn" style="margin-top:20px; padding:10px" onclick="toggleSettings()">Fechar</button>
@@ -514,6 +526,9 @@
   uniform float pJitter; // ENTROPIA (VIBRAÇÃO)
   uniform float pTwist;  // TORÇÃO (HELIX)
   uniform float pAb;    // ABERRAÇÃO CROMÁTICA
+  uniform float pBre;   // RESPIRAÇÃO
+  uniform float pHcy;   // VELOCIDADE DA COR
+  uniform float pSke;   // ASSIMETRIA
   
   uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
   uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
@@ -524,9 +539,10 @@
 
   vec3 getSpirographColor(float t, float i, float sat) {
     vec3 color;
-    color.r = 0.5 + 0.5 * sin(t + i * 0.1 + pAb); 
-    color.g = 0.5 + 0.5 * cos(t + i * 0.15);
-    color.b = 0.5 + 0.5 * sin(t + i * 0.2 - pAb); 
+    float timePart = t * pHcy; // CONTROLA A VELOCIDADE DA COR
+    color.r = 0.5 + 0.5 * sin(timePart + i * 0.1 + pAb); 
+    color.g = 0.5 + 0.5 * cos(timePart + i * 0.15);
+    color.b = 0.5 + 0.5 * sin(timePart + i * 0.2 - pAb); 
     float luminance = dot(color, vec3(0.299, 0.587, 0.114));
     return mix(vec3(luminance), color, sat);
   }
@@ -584,7 +600,15 @@
         float ang = i * pTwist * 0.05;
         pos = vec2(pos.x * cos(ang) - pos.y * sin(ang), pos.x * sin(ang) + pos.y * cos(ang));
         
-        // ENTROPIA (JITTER)
+        // APRIMORAMENTO 1: RESPIRAÇÃO
+        float bre = 1.0 + 0.2 * sin(time * pBre);
+        pos *= bre;
+        
+        // APRIMORAMENTO 2: ASSIMETRIA (SKEW)
+        pos.x *= pSke;
+        pos.y /= pSke;
+
+        // APRIMORAMENTO 3: ENTROPIA (JITTER)
         float noise = fract(sin(i * 123.45) * 456.78) - 0.5;
         pos += noise * pJitter;
         
@@ -717,6 +741,9 @@ function updateEditor() {
     pJitter = parseFloat(document.getElementById('sld-jit').value);
     pTwist = parseFloat(document.getElementById('sld-twi').value);
     pAb = parseFloat(document.getElementById('sld-ab').value);
+    pBre = parseFloat(document.getElementById('sld-bre').value);
+    pHcy = parseFloat(document.getElementById('sld-hcy').value);
+    pSke = parseFloat(document.getElementById('sld-ske').value);
 
     document.getElementById('val-ps').textContent = pRes;
     document.getElementById('val-aura').textContent = pAura;
@@ -730,6 +757,9 @@ function updateEditor() {
     document.getElementById('val-jit').textContent = pJitter;
     document.getElementById('val-twi').textContent = pTwist;
     document.getElementById('val-ab').textContent = pAb;
+    document.getElementById('val-bre').textContent = pBre;
+    document.getElementById('val-hcy').textContent = pHcy;
+    document.getElementById('val-ske').textContent = pSke;
 }
 
 function toggleSettings() {
@@ -1109,6 +1139,9 @@ function render(now = 0) {
     gl.uniform1f(gl.getUniformLocation(program, 'pJitter'), pJitter);
     gl.uniform1f(gl.getUniformLocation(program, 'pTwist'), pTwist);
     gl.uniform1f(gl.getUniformLocation(program, 'pAb'), pAb);
+    gl.uniform1f(gl.getUniformLocation(program, 'pBre'), pBre);
+    gl.uniform1f(gl.getUniformLocation(program, 'pHcy'), pHcy);
+    gl.uniform1f(gl.getUniformLocation(program, 'pSke'), pSke);
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, 0, 0); gl.uniform2f(uPVel, playerVelX, playerVelY);
     gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);

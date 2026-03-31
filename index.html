@@ -481,7 +481,7 @@
     <h3>Laboratório Criativo</h3>
     <div class="slider-row">
       <label>TIPO DE CURVA (FORÇAR) <span id="val-type">5</span></label>
-      <input type="range" min="0" max="144" step="1" value="5" id="sld-type" oninput="updateEditor()">
+      <input type="range" min="0" max="148" step="1" value="5" id="sld-type" oninput="updateEditor()">
     </div>
     <div class="slider-row" style="display:flex; justify-content:space-between; gap:5px;">
       <div style="flex:1">
@@ -930,8 +930,60 @@
         float proj = 1.0 / (2.0 - z_3d * 0.3 * params.z);
         pos = vec2(x_3d, y_3d) * 0.2 * proj;
 
+    } else if (type == 143) { 
+        // 143: Métrica de Schwarzschild (Lente Gravitacional / Buraco Negro)
+        float r_bh = params.x * 0.2 + 0.1; // Raio do Horizonte de Eventos
+        float impact_b = (aa - 0.5) * params.y * 10.0; // Parâmetro de impacto do fóton
+        float deflection = (2.0 * r_bh) / max(abs(impact_b), r_bh * 1.01);
+        float phi = a + deflection * exp(-aa * params.z * (1.0 + n*0.1));
+        float r_path = max(abs(impact_b), r_bh) * (1.0 + 0.5 * sin(t + n));
+        pos = vec2(r_path * cos(phi), r_path * sin(phi)) * 0.15;
+
+    } else if (type == 144) { 
+        // 144: Mitose de Gray-Scott (Modelo de Reação-Difusão Celular Ativo)
+        float kill_rate = params.x * 0.06 + 0.02 + n*0.001; 
+        float feed_rate = params.y * 0.05 + 0.01;
+        vec2 p_gs = vec2(cos(a)*aa, sin(a)*aa);
+        float u_chem = sin(p_gs.x * 30.0 + t) * cos(p_gs.y * 30.0 - t);
+        float v_chem = sin(p_gs.x * 40.0 * n) * sin(p_gs.y * 40.0 + t);
+        float reaction = u_chem * v_chem * v_chem - (feed_rate + kill_rate) * v_chem;
+        float cell = smoothstep(0.0, 0.4, abs(u_chem - reaction * params.z * 10.0));
+        float r_gs = 0.5 * aa * (1.0 + 0.2 * cell);
+        pos = vec2(r_gs * cos(a), r_gs * sin(a));
+
+    } else if (type == 145) { 
+        // 145: Transformada de Lorentz (Distorção do Espaço-Tempo / Velocidade da Luz)
+        float v_vel = params.x * 0.99; // Aproximando C (Velocidade da Luz)
+        float gamma = 1.0 / sqrt(1.0 - v_vel * v_vel + 0.001); // Dilatação temporal
+        float x_rest = aa * cos(a);
+        float t_rest = aa * sin(a) + t;
+        float x_prime = gamma * (x_rest - v_vel * t_rest);
+        float t_prime = gamma * (t_rest - v_vel * x_rest);
+        float r_lor = 0.3 * (1.0 + params.z * n * 0.1);
+        pos = vec2(x_prime * r_lor, t_prime * r_lor * params.y) * 0.5;
+
+    } else if (type == 146) { 
+        // 146: Espiral de Cornu / Clotoide (Curvatura Geométricamente Perfeita)
+        vec2 cornu = vec2(0.0);
+        float length_arc = (aa - 0.5) * (10.0 + params.x * 10.0 + n);
+        for(float k = 0.0; k < 15.0; k++) {
+            float step_s = length_arc * (k / 15.0);
+            float phase = step_s * step_s * 0.5 * params.y;
+            cornu += vec2(cos(phase), sin(phase));
+        }
+        pos = cornu * 0.02 * params.z * (1.0 + 0.1*sin(t + a));
+
+    } else if (type == 147) { 
+        // 147: Função Invariante-J de Klein (Módulos da Teoria das Cordas / M-Theory)
+        vec2 tau = vec2((a / PI) * params.x, aa * params.y + 0.01 + n*0.1);
+        vec2 num = vec2(cos(tau.x*10.0), sin(tau.x*10.0)) * exp(-tau.y * 5.0);
+        vec2 den = vec2(sin(tau.x*10.0 + t), cos(tau.x*10.0 - t)) * exp(-tau.y * 3.0);
+        float j_inv = length(num) / (length(den) + 0.001);
+        float r_j = 0.4 * tanh(j_inv * params.z);
+        pos = vec2(r_j * cos(a), r_j * sin(a));
+
     } else { 
-        // type 143+: A MATRIZ DO ONIVERSO (Singularidade Hipercúbica Final)
+        // type 148+: A MATRIZ DO ONIVERSO (Singularidade Hipercúbica Final)
         float r = 0.3 * abs(sin(a * floor(params.x*5.0) + t));
         float fold = cos(a * floor(params.y*8.0) - t * 2.0);
         float chaos = fract(sin(i * 123.456 + t) * 987.654) * 0.1;
@@ -1173,8 +1225,8 @@ function updateEditor() {
 }
 
 function applyChaos() {
-    // ALEATORIEDADE SUPREMA: MULTIVERSO MATEMÁTICO (145 TIPOS x INFINITOS KS)
-    document.getElementById('sld-type').value = Math.floor(Math.random() * 145);
+    // ALEATORIEDADE SUPREMA: MULTIVERSO MATEMÁTICO (149 TIPOS x INFINITOS KS)
+    document.getElementById('sld-type').value = Math.floor(Math.random() * 149);
     document.getElementById('sld-x').value = (Math.random() * 10).toFixed(1);
     document.getElementById('sld-y').value = (Math.random() * 10).toFixed(1);
     document.getElementById('sld-z').value = (Math.random() * 10).toFixed(1);

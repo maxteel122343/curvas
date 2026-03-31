@@ -351,6 +351,7 @@
   uniform vec2 foodPos[100];
   uniform float foodHue[100];
   uniform int numFood;
+  uniform float pDamage; // Estado de fraqueza local
   uniform float pGlow;  // ESTADO DE BRILHO EXTRA LOCAL
   uniform float pHeart; // PONTO VITAL LOCAL
   
@@ -458,7 +459,6 @@
             if (distToOHeart < 0.07) oHeartGlow = (0.03 / (d + 0.001)) * (0.5 + 0.5 * sin(time * 10.0 + float(k)));
 
             outColor += getSpirographColor(t + float(k), i, oSat) * ((0.002 / (d + 0.001)) * oBri + oHeartGlow);
-        }
         }
     }
 

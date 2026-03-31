@@ -471,7 +471,7 @@
     <h3>Laboratório Criativo</h3>
     <div class="slider-row">
       <label>TIPO DE CURVA (FORÇAR) <span id="val-type">5</span></label>
-      <input type="range" min="0" max="63" step="1" value="5" id="sld-type" oninput="updateEditor()">
+      <input type="range" min="0" max="127" step="1" value="5" id="sld-type" oninput="updateEditor()">
     </div>
     <div class="slider-row" style="display:flex; justify-content:space-between; gap:5px;">
       <div style="flex:1">
@@ -924,6 +924,41 @@
         float r = 0.1 + 0.4 * proceduralHash1(i + t);
         pos = vec2(r * cos(a), r * sin(a));
     }
+    else if (type >= 64 && type <= 79) { // FAMÍLIA DE ATRATOTORES (Caos Dinâmico)
+        float a = i / max(pCount, 1.0) * PI * 2.0;
+        float x = sin(a * params.x + t);
+        float y = cos(a * params.y + t);
+        for(int k=0; k<3; k++) { // Iteração simplificada de atrator
+            float nx = sin(params.z * x) + params.y * cos(params.z * x);
+            float ny = sin(params.x * y) + params.y * cos(params.x * y);
+            x = nx; y = ny;
+        }
+        pos = vec2(x, y) * 0.3;
+    }
+    else if (type >= 80 && type <= 95) { // FAMÍLIA L-SYSTEM (Botânica Fractal)
+        float a = i / max(pCount, 1.0);
+        float angle = a * PI * 2.0 * params.x + t;
+        float r = 0.4 * pow(a, 0.5);
+        if(mod(i, 5.0) < 1.0) r *= 1.2; // Efeito de ramificação
+        pos = vec2(r * cos(angle), r * sin(angle));
+    }
+    else if (type >= 96 && type <= 111) { // FAMÍLIA BÉZIER (Fitas de Fluido)
+        float a = i / max(pCount, 1.0);
+        vec2 p1 = vec2(sin(t), cos(t)) * 0.4;
+        vec2 p2 = vec2(cos(t*params.x), sin(t*params.y)) * 0.4;
+        pos = mix(p1, p2, a) + 0.1 * sin(a * 10.0 + t * params.z);
+    }
+    else if (type >= 112 && type <= 126) { // FAMÍLIA QUÂNTICA (Probabilidade)
+        float id = i + t;
+        float r = 0.4 * proceduralHash1(id);
+        float ang = i / max(pCount, 1.0) * PI * 2.0 + t;
+        pos = vec2(r * cos(ang * params.x), r * sin(ang * params.y));
+    }
+    else if (type == 127) { // A SINGULARIDADE ABSOLUTA (THE END)
+        float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+        float r = 0.5 * abs(sin(t * 10.0)) * proceduralHash1(i);
+        pos = vec2(r * cos(a * params.x), r * sin(a * params.y)) * (1.0 + sin(t));
+    }
     return pos;
   }
 
@@ -1139,8 +1174,8 @@ function updateEditor() {
 }
 
 function applyChaos() {
-    // ALEATORIEDADE PURA (DIVINA)
-    document.getElementById('sld-type').value = Math.floor(Math.random() * 64);
+    // ALEATORIEDADE TOTAL (128 TIPOS)
+    document.getElementById('sld-type').value = Math.floor(Math.random() * 128);
     document.getElementById('sld-x').value = (Math.random() * 10).toFixed(1);
     document.getElementById('sld-y').value = (Math.random() * 10).toFixed(1);
     document.getElementById('sld-z').value = (Math.random() * 10).toFixed(1);

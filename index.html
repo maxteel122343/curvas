@@ -670,7 +670,16 @@ function initMultiplayer() {
     });
     setInterval(() => {
         if (isPlaying) {
-            let myHeart = (Date.now() % 4000) / 4000; // Pulso do coração
+            // LIMFPAR JOGADORES INATIVOS (ANTI-FANTASMA)
+            const now = Date.now();
+            for (let id in others) {
+                if (now - others[id].lastSeen > 3000) {
+                    delete others[id];
+                    updatePlayersList(channel.presenceState());
+                }
+            }
+
+            let myHeart = (Date.now() % 4000) / 4000;
             channel.send({ 
                 type: 'broadcast', 
                 event: 'pos', 
@@ -691,7 +700,6 @@ function updatePlayersList(presenceState) {
     const listDiv = document.getElementById('playersItems');
     if (!listDiv) return;
     
-    // Limpar GHOSTS (jogadores inativos)
     const activeNames = Object.keys(presenceState);
     const now = Date.now();
 
@@ -702,15 +710,8 @@ function updatePlayersList(presenceState) {
         } else if (others[key]) {
             s = others[key].s || 0;
             m = others[key].p || 0;
-        } else {
-            const p = presenceState[key][0];
-            s = p.score || 0;
-            m = p.p || 0;
         }
         return { name: key, score: s, mass: Math.floor(m) };
-    }).filter(p => {
-        if (p.name === myName) return true;
-        return (others[p.name] && (now - others[p.name].lastSeen < 4000));
     }).sort((a, b) => b.score - a.score);
 
     const newItems = playersArr.map(p => `
@@ -871,8 +872,8 @@ function render(now = 0) {
     });
     gl.uniform1i(uNumFood, foods.length);
     foods.forEach((f, i) => {
-        gl.uniform2f(gl.getUniformLocation(program, `foodPos[${i}]`), f.x, f.y);
-        gl.uniform1f(gl.getUniformLocation(program, `foodHue[${i}]`), f.hue);
+        if (uFoodPos) gl.uniform2f(gl.getUniformLocation(program, `foodPos[${i}]`), f.x, f.y);
+        if (uFoodHue) gl.uniform1f(gl.getUniformLocation(program, `foodHue[${i}]`), f.hue);
     });
 
     // Passar explosões para o shader de forma rápida

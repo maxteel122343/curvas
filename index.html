@@ -543,6 +543,14 @@
       <label>ZOOM ESTELAR <span id="val-zoo">1.0</span></label>
       <input type="range" min="0.2" max="3.0" step="0.1" value="1.0" id="sld-zoo" oninput="updateEditor()">
     </div>
+    <div class="slider-row">
+      <label>AGUDEZA (SHARP) <span id="val-pow">0.5</span></label>
+      <input type="range" min="0.1" max="2.0" step="0.05" value="0.5" id="sld-pow" oninput="updateEditor()">
+    </div>
+    <div class="slider-row">
+      <label>DIGITALIZAÇÃO <span id="val-flo">15.0</span></label>
+      <input type="range" min="2.0" max="50.0" step="1.0" value="15.0" id="sld-flo" oninput="updateEditor()">
+    </div>
   </div>
 </div>
 
@@ -615,6 +623,8 @@
   uniform float pDen;   // DENSIDADE
   uniform float pTai;   // CAUDA (DECAIMENTO)
   uniform float uZoom;  // ZOOM DA CÂMERA
+  uniform float pPow;   // PODER DE AGUDEZA
+  uniform float pFlo;   // PODER DE PIXELIZAÇÃO
   
   uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
   uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
@@ -667,14 +677,14 @@
     }
     else if (type == 14) { // ESTRELA DE NÊUTRONS (Spikes)
         float a = i / max(pCount, 1.0) * PI * 2.0;
-        float r = 0.3 * pow(abs(sin(a * params.x + t)), 0.2);
+        float r = 0.3 * pow(abs(sin(a * params.x + t)), pPow);
         pos = vec2(r * sin(a * params.y + t), r * cos(a * params.z + t));
     }
     else if (type == 15) { // CIBER-GLITCH (Digital)
         float a = i / max(pCount, 1.0) * PI * 2.0;
         float r = 0.4;
         vec2 p = vec2(r * cos(a * params.x + floor(t*2.0)), r * sin(a * params.y + floor(t*2.0)));
-        pos = floor(p * 15.0) / 15.0; // Efeito pixelado
+        pos = floor(p * pFlo) / pFlo; // Efeito pixelado controlado
     }
     return pos;
   }
@@ -804,6 +814,7 @@ var pRes = 0.004, pAura = 1.1, pSpinMult = 1.0, pFlowMult = 1.0, pSatBase = 1.3;
 var pTypeOverride = -1, pX = 1.0, pY = 1.0, pZ = 1.0;
 var pJitter = 0.0, pTwist = 0.0, pAb = 0.0, pBre = 0.0, pHcy = 1.0, pSke = 1.0;
 var pDen = 1.0, pTai = 1.5, pZoo = 1.0;
+var pPow = 0.5, pFlo = 15.0; // NOVOS: POTÊNCIA E CHÃO
 
 let gl, program;
 let minimapCanvas, minimapCtx;
@@ -839,7 +850,7 @@ let lastPlayersMass = {};
 let uTime, uRes, uSat, uBri, uOtherLimit, uCameraPos, uPDamage, uPGlow, uPHeart;
 let uPPos, uPVel, uPCurve, uPPart;
 let uOtherPos, uOtherVel, uOtherCurve, uOtherPart, uNumOthers, uOtherDamage, uOtherGlow, uOtherHeart;
-let uFoodPos, uFoodHue, uNumFood;
+let uFoodPos, uFoodHue, uNumFood, uPPow, uPFlo;
 let uExpPos, uExpTime;
 
 let explosions = []; // { x, y, start }
@@ -864,6 +875,8 @@ function updateEditor() {
     pDen = parseFloat(document.getElementById('sld-den').value);
     pTai = parseFloat(document.getElementById('sld-tai').value);
     pZoo = parseFloat(document.getElementById('sld-zoo').value);
+    pPow = parseFloat(document.getElementById('sld-pow').value);
+    pFlo = parseFloat(document.getElementById('sld-flo').value);
 
     document.getElementById('val-ps').textContent = pRes;
     document.getElementById('val-aura').textContent = pAura;
@@ -883,6 +896,8 @@ function updateEditor() {
     document.getElementById('val-den').textContent = pDen;
     document.getElementById('val-tai').textContent = pTai;
     document.getElementById('val-zoo').textContent = pZoo;
+    document.getElementById('val-pow').textContent = pPow;
+    document.getElementById('val-flo').textContent = pFlo;
 }
 
 function applyChaos() {
@@ -901,6 +916,8 @@ function applyChaos() {
     document.getElementById('sld-ske').value = (Math.random() * 1.5 + 0.5).toFixed(2);
     document.getElementById('sld-den').value = (Math.random() * 4.0 + 0.5).toFixed(1);
     document.getElementById('sld-tai').value = (Math.random() * 7.0 + 0.5).toFixed(1);
+    document.getElementById('sld-pow').value = (Math.random() * 1.5 + 0.1).toFixed(2);
+    document.getElementById('sld-flo').value = (Math.random() * 48.0 + 2.0).toFixed(0);
     updateEditor();
 }
 
@@ -908,12 +925,13 @@ function applyHarmony() {
     // IA: LÓGICA DE PROPORÇÃO ÁUREA E ARQUÉTIPOS CÓSMICOS
     const PHI = 1.618;
     const archetypes = [
-        { type: 5, x: 1.0, y: PHI, z: PHI*2, jit: 0, twi: 0.1, ab: 0.2, bre: 1.0, den: 1.0, tai: 1.5 }, // Flor Cósmica
-        { type: 2, x: 5.0, y: 2.0, z: 4.0, jit: 0.002, twi: 0.5, ab: 0, bre: 2.5, den: 1.5, tai: 4.0 },  // Estrela Pulsante
-        { type: 10, x: 5.0, y: 1.0, z: 2.0, jit: 0, twi: 0, ab: 0.8, bre: 0.5, den: 0.5, tai: 1.0 },    // Onda Crítica (NOVO)
-        { type: 11, x: 12.0, y: 1.0, z: 1.0, jit: 0, twi: 0, ab: 0.1, bre: 1.5, den: 1.0, tai: 3.0 },   // Estrela de Pulsar (NOVO)
-        { type: 12, x: 1.0, y: 1.0, z: 2.0, jit: 0.01, twi: 0, ab: 0.3, bre: 0.5, den: 0.8, tai: 2.0 }, // Hélice DNA (NOVO)
-        { type: 4, x: 8.0, y: 0.5, z: 1.0, jit: 0.01, twi: 0, ab: 0.5, bre: 0.5, den: 0.2, tai: 8.0 }    // Teia de Neon
+        { type: 5, x: 1.0, y: PHI, z: PHI*2, jit: 0, twi: 0.1, ab: 0.2, bre: 1.0, den: 1.0, tai: 1.5, pow: 0.5, flo: 25.0 }, // Flor Cósmica
+        { type: 2, x: 5.0, y: 2.0, z: 4.0, jit: 0.002, twi: 0.5, ab: 0, bre: 2.5, den: 1.5, tai: 4.0, pow: 0.8, flo: 15.0 },  // Estrela Pulsante
+        { type: 10, x: 5.0, y: 1.0, z: 2.0, jit: 0, twi: 0, ab: 0.8, bre: 0.5, den: 0.5, tai: 1.0, pow: 0.3, flo: 30.0 },    // Onda Crítica
+        { type: 11, x: 12.0, y: 1.0, z: 1.0, jit: 0, twi: 0, ab: 0.1, bre: 1.5, den: 1.0, tai: 3.0, pow: 0.2, flo: 10.0 },  // Estrela de Pulsar
+        { type: 12, x: 1.0, y: 1.0, z: 2.0, jit: 0.01, twi: 0, ab: 0.3, bre: 0.5, den: 0.8, tai: 2.0, pow: 0.5, flo: 20.0 }, // Hélice DNA
+        { type: 14, x: 8.0, y: 1.0, z: 1.0, jit: 0, twi: 0.5, ab: 1.0, bre: 0.2, den: 0.4, tai: 1.0, pow: 1.8, flo: 40.0 },  // Agulha Estelar
+        { type: 15, x: 4.0, y: 4.0, z: 4.0, jit: 0.02, twi: 0, ab: 0.5, bre: 0, den: 1.0, tai: 0.5, pow: 0.5, flo: 8.0 }     // Glitch Arte
     ];
     
     const picked = archetypes[Math.floor(Math.random() * archetypes.length)];
@@ -930,6 +948,8 @@ function applyHarmony() {
     document.getElementById('sld-ske').value = (1.0 + (Math.random()-0.5)*0.2).toFixed(2);
     document.getElementById('sld-den').value = picked.den;
     document.getElementById('sld-tai').value = picked.tai;
+    document.getElementById('sld-pow').value = picked.pow || 0.5;
+    document.getElementById('sld-flo').value = picked.flo || 15.0;
     updateEditor();
 }
 
@@ -1088,6 +1108,8 @@ function initWebGL() {
     uOtherHeart = gl.getUniformLocation(program, 'otherHeart');
     uExpPos = gl.getUniformLocation(program, 'expPos');
     uExpTime = gl.getUniformLocation(program, 'expTime');
+    uPPow = gl.getUniformLocation(program, 'pPow');
+    uPFlo = gl.getUniformLocation(program, 'pFlo');
     
     // Minimap Init
     minimapCanvas = document.getElementById('minimap-canvas');
@@ -1405,6 +1427,8 @@ function render(now = 0) {
     gl.uniform1f(gl.getUniformLocation(program, 'pDen'), pDen);
     gl.uniform1f(gl.getUniformLocation(program, 'pTai'), pTai);
     gl.uniform1f(gl.getUniformLocation(program, 'uZoom'), pZoo);
+    gl.uniform1f(uPPow, pPow);
+    gl.uniform1f(uPFlo, pFlo);
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, 0, 0); gl.uniform2f(uPVel, playerVelX, playerVelY);
     gl.uniform1i(uPCurve, myCurve); gl.uniform1f(uPPart, myParticles);

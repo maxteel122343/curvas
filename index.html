@@ -127,15 +127,22 @@
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     background: rgba(15, 15, 30, 0.95);
+    backdrop-filter: blur(20px);
     padding: 30px;
     border-radius: 20px;
     border: 1px solid var(--primary);
     z-index: 2000;
     display: none;
-    width: 300px;
+    width: 380px; /* Um pouco mais largo para os sliders */
+    max-height: 85vh; /* Limite de altura */
+    overflow-y: auto; /* Barra de rolagem */
     text-align: left;
     box-shadow: 0 0 100px rgba(0,0,0,0.8);
   }
+  /* Estilo do scroll neon */
+  #settings-panel::-webkit-scrollbar { width: 4px; }
+  #settings-panel::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+  #settings-panel::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 2px; }
   #settings-panel.active { display: block; }
   .settings-panel h2 { margin-top: 0; font-size: 1.2rem; text-transform: uppercase; color: var(--primary); }
   .quality-option {

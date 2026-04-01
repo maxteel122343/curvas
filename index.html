@@ -521,12 +521,33 @@
     <div style="border: 1px solid rgba(255,100,50,0.5); padding: 10px; margin-bottom: 12px; background: rgba(255,100,50,0.05); border-radius: 5px;">
       <h4 style="margin: 0 0 10px 0; color: #ff6633; text-transform: uppercase; font-size: 10px; letter-spacing: 2px;">Leis da Relatividade Mestra</h4>
       <div class="slider-row">
-        <label style="color: #ffaa00;">Gravidade (Distórtica) <span id="val-grav">0.0</span></label>
+        <label style="color: #ffaa00;">Gravidade Vizual (Distórtica) <span id="val-grav">0.0</span></label>
         <input type="range" min="-1.5" max="3.0" step="0.1" value="0.0" id="sld-grav" oninput="updateEditor()">
       </div>
       <div class="slider-row">
         <label style="color: #ffaa00;">Aceleração do Tempo (T) <span id="val-tacc">1.0</span></label>
         <input type="range" min="-2.0" max="5.0" step="0.1" value="1.0" id="sld-tacc" oninput="updateEditor()">
+      </div>
+    </div>
+
+    <!-- SISTEMA DE COMBATE GRAVITACIONAL -->
+    <div style="border: 1px solid rgba(255,255,255,0.2); padding: 10px; margin-bottom: 12px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+      <h4 style="margin: 0 0 10px 0; color: #fff; text-transform: uppercase; font-size: 10px; letter-spacing: 2px;">Arsenal Tático (G-Combat)</h4>
+      <div class="slider-row">
+        <label style="color: #ff3366;">FORÇA VETORIAL (PUXAR INIMIGO) <span id="val-gpull">0.0</span></label>
+        <input type="range" min="0.0" max="5.0" step="0.1" value="0.0" id="sld-gpull" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #ff3366;">TAXA DE DEGENERAÇÃO (ROUBO DE MASSA) <span id="val-gsteal">0.0</span></label>
+        <input type="range" min="0.0" max="2.0" step="0.05" value="0.0" id="sld-gsteal" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #00ffaa;">RALO CÓSMICO (PUXAR COMIDA DO CÉNARIO) <span id="val-gfood">0.0</span></label>
+        <input type="range" min="0.0" max="10.0" step="0.5" value="0.0" id="sld-gfood" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #00d9e6;">BLINDAGEM INERCIAL (RESISTÊNCIA FÍSICA) <span id="val-gres">0.0</span></label>
+        <input type="range" min="0.0" max="1.0" step="0.05" value="0.0" id="sld-gres" oninput="updateEditor()">
       </div>
     </div>
 
@@ -1289,6 +1310,8 @@ var pColor = [0.0, 0.0, 0.0];
 var pJitter = 0.0, pTwist = 0.0, pAb = 0.0, pBre = 0.0, pHcy = 1.0, pSke = 1.0;
 var pDen = 1.0, pTai = 1.5, pZoo = 1.0, pK = 1.0;
 var pPow = 0.5, pFlo = 15.0; // NOVOS: POTÊNCIA E CHÃO
+var pGrav = 0.0, pTacc = 1.0; 
+var pGPull = 0.0, pGSteal = 0.0, pGFood = 0.0, pGRes = 0.0; // Sistema de Combate
 
 let gl, program;
 let minimapCanvas, minimapCtx;
@@ -1440,6 +1463,12 @@ function updateEditor() {
     pGrav = parseFloat(document.getElementById('sld-grav').value);
     pTacc = parseFloat(document.getElementById('sld-tacc').value);
 
+    // Sistema de Combate Gravitacional G-Combat
+    pGPull = parseFloat(document.getElementById('sld-gpull').value);
+    pGSteal = parseFloat(document.getElementById('sld-gsteal').value);
+    pGFood = parseFloat(document.getElementById('sld-gfood').value);
+    pGRes = parseFloat(document.getElementById('sld-gres').value);
+
     document.getElementById('val-ps').textContent = pRes;
     document.getElementById('val-aura').textContent = pAura;
     document.getElementById('val-spin').textContent = pSpinMult;
@@ -1453,6 +1482,11 @@ function updateEditor() {
     document.getElementById('val-k').textContent = pK;
     document.getElementById('val-grav').textContent = pGrav;
     document.getElementById('val-tacc').textContent = pTacc;
+    
+    document.getElementById('val-gpull').textContent = pGPull;
+    document.getElementById('val-gsteal').textContent = pGSteal;
+    document.getElementById('val-gfood').textContent = pGFood;
+    document.getElementById('val-gres').textContent = pGRes;
     
     // ATUALIZAÇÃO DA ENCICLOPÉDIA DA CURVA ATUAL
     let meta = getCurveMeta(pTypeOverride);

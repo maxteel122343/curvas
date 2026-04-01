@@ -576,8 +576,16 @@
       </div>
     </div>
 
+    <div class="slider-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; gap: 5px;">
+      <div style="flex: 1;">
+        <label style="margin: 0; color: #ffeb3b; font-size: 10px;">GRADIENTES MATEMÁTICOS <span id="val-cmode">0</span></label>
+        <input type="range" min="0" max="5" step="1" value="0" id="sld-cmode" oninput="updateEditor()">
+      </div>
+      <button onclick="randomizeCurrentColor()" style="background: rgba(255,235,59,0.2); border: 1px solid #ffeb3b; color: #ffeb3b; border-radius: 4px; padding: 4px 8px; font-size: 9px; cursor: pointer; text-transform: uppercase;">Aleatório</button>
+    </div>
+
     <div class="slider-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-      <label style="margin: 0; color: #ffeb3b;">COR INDIVIDUAL / MULTICOR (Preto = Multicor)</label>
+      <label style="margin: 0; color: #fff;">COR INDIVIDUAL / FIXA</label>
       <input type="color" id="inp-color" value="#000000" onchange="updateEditor()" style="width: 40px; height: 30px; background: none; border: 1px solid rgba(0,242,255,0.4); cursor: pointer;">
     </div>
     <div class="slider-row">
@@ -731,6 +739,7 @@
   uniform float pFlo;   // PODER DE PIXELIZAÇÃO
   uniform float pW;     // QUARTA DIMENSÃO / CAOS 4
   uniform vec3 pColor;  // OVERRIDE DE COR INDIVIDUAL
+  uniform int pColorMode; // MODOS DE GRADIENTE (0=Rainbow, 1=Cyber, 2=Solar, 3=Abissal, 4=Organico, 5=Monocromo)
   
   uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
   uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
@@ -753,10 +762,25 @@
     if (length(pColor) > 0.01) {
         rgb = pColor;
     } else {
-        float timePart = t * pHcy; // CONTROLA A VELOCIDADE DA COR
-        rgb.r = 0.5 + 0.5 * sin(timePart + i * 0.1 + pAb); 
-        rgb.g = 0.5 + 0.5 * cos(timePart + i * 0.15);
-        rgb.b = 0.5 + 0.5 * sin(timePart + i * 0.2 - pAb); 
+        float timePart = t * pHcy; 
+        float phase = timePart + i * 0.1;
+
+        if (pColorMode == 1) { // CYBERPUNK (Pink/Cyan)
+            rgb = mix(vec3(1.0, 0.0, 0.9), vec3(0.0, 1.0, 1.0), 0.5 + 0.5 * sin(phase));
+        } else if (pColorMode == 2) { // SOLAR (Red/Gold)
+            rgb = mix(vec3(1.0, 0.1, 0.0), vec3(1.0, 0.8, 0.0), 0.5 + 0.5 * sin(phase));
+        } else if (pColorMode == 3) { // ABISSAL (Deep Blue/Teal)
+            rgb = mix(vec3(0.0, 0.05, 0.4), vec3(0.0, 1.0, 0.8), 0.5 + 0.5 * cos(phase));
+        } else if (pColorMode == 4) { // ORGÂNICO (Green/Yellow)
+            rgb = mix(vec3(0.0, 0.5, 0.1), vec3(0.8, 1.0, 0.0), 0.5 + 0.5 * sin(phase * 0.8));
+        } else if (pColorMode == 5) { // PRATEADO (Silver/Chrome)
+            float glow = 0.5 + 0.5 * sin(phase);
+            rgb = vec3(glow + 0.4, glow + 0.45, glow + 0.5);
+        } else { // 0: RAINBOW ORIGINAL
+            rgb.r = 0.5 + 0.5 * sin(timePart + i * 0.1 + pAb); 
+            rgb.g = 0.5 + 0.5 * cos(timePart + i * 0.15);
+            rgb.b = 0.5 + 0.5 * sin(timePart + i * 0.2 - pAb); 
+        }
     }
     float luminance = dot(rgb, vec3(0.299, 0.587, 0.114));
     return mix(vec3(luminance), rgb, sat);
@@ -1335,7 +1359,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // VARIÁVEIS GLOBAIS DO LABORATÓRIO (MOVIDAS PARA O TOPO)
-var pRes = 0.003, pAura = 0.7, pSpinMult = 1.0, pFlowMult = 1.0, pSatBase = 1.3;
+var pRes = 0.003, pAura = 0.7, pSpinMult = 1.0, pFlowMult = 1.0, pSatBase = 1.3, pColorMode = 0;
 var pTypeOverride = -1, pX = 1.0, pY = 1.0, pZ = 1.0, pW = 1.0;
 var pColor = [0.0, 0.0, 0.0];
 var pJitter = 0.0, pTwist = 0.0, pAb = 0.0, pBre = 0.0, pHcy = 1.0, pSke = 1.0;
@@ -1499,6 +1523,7 @@ function updateEditor() {
     pGSteal = parseFloat(document.getElementById('sld-gsteal').value);
     pGFood = parseFloat(document.getElementById('sld-gfood').value);
     pGRes = parseFloat(document.getElementById('sld-gres').value);
+    pColorMode = parseInt(document.getElementById('sld-cmode').value);
 
     document.getElementById('val-ps').textContent = pRes;
     document.getElementById('val-aura').textContent = pAura;
@@ -1518,6 +1543,7 @@ function updateEditor() {
     document.getElementById('val-gsteal').textContent = pGSteal;
     document.getElementById('val-gfood').textContent = pGFood;
     document.getElementById('val-gres').textContent = pGRes;
+    document.getElementById('val-cmode').textContent = pColorMode;
     
     // ATUALIZAÇÃO DA ENCICLOPÉDIA DA CURVA ATUAL
     let meta = getCurveMeta(pTypeOverride);
@@ -1703,6 +1729,17 @@ async function startGame() {
     window.addEventListener('mouseup', () => isDashing = false);
     window.addEventListener('contextmenu', e => e.preventDefault());
     isPlaying = true;
+}
+
+function randomizeCurrentColor() {
+    const r = Math.floor(Math.random() * 6);
+    document.getElementById('sld-cmode').value = r;
+    // Aleatorizar também velocidade e aberração para dar "alma" ao gradiente
+    document.getElementById('sld-hcy').value = (Math.random() * 3.0).toFixed(1);
+    document.getElementById('sld-ab').value = (Math.random() * 1.5).toFixed(2);
+    // Resetar cor individual se clicar em aleatório de gradiente
+    document.getElementById('inp-color').value = "#000000";
+    updateEditor();
 }
 
 window.onload = () => {
@@ -2176,6 +2213,7 @@ function render(now = 0) {
     
     gl.uniform1f(uPGrav, pGrav);
     gl.uniform1f(uPTacc, pTacc);
+    gl.uniform1i(gl.getUniformLocation(program, 'pColorMode'), pColorMode);
 
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, renderPx, renderPy); 

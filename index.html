@@ -567,12 +567,32 @@
         <input type="range" min="0.0" max="2.0" step="0.05" value="0.0" id="sld-gsteal" oninput="updateEditor()">
       </div>
       <div class="slider-row">
-        <label style="color: #00ffaa;">RALO CÓSMICO (PUXAR COMIDA DO CÉNARIO) <span id="val-gfood">0.0</span></label>
+        <label style="color: #00ffaa;">RALO CÓSMICO (BÔNUS CAPTURA) <span id="val-gfood">0.0</span></label>
         <input type="range" min="0.0" max="10.0" step="0.5" value="0.0" id="sld-gfood" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #00ffaa;">FORÇA DE ARRASTO (RASPEJAR) <span id="val-gforce">0.0</span></label>
+        <input type="range" min="0.0" max="5.0" step="0.1" value="0.0" id="sld-gforce" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #00ffaa;">ALCANCE DO ARRASTO (ÓRBITA) <span id="val-grange">0.5</span></label>
+        <input type="range" min="0.1" max="3.0" step="0.1" value="0.5" id="sld-grange" oninput="updateEditor()">
       </div>
       <div class="slider-row">
         <label style="color: #00d9e6;">BLINDAGEM INERCIAL (RESISTÊNCIA FÍSICA) <span id="val-gres">0.0</span></label>
         <input type="range" min="0.0" max="1.0" step="0.05" value="0.0" id="sld-gres" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #00ffaa;">FREQUÊNCIA DO CORAÇÃO (PULSO) <span id="val-hrt-spd">10.0</span></label>
+        <input type="range" min="1.0" max="40.0" step="1.0" value="10.0" id="sld-hrt-spd" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #00ffaa;">INTENSIDADE DO CORAÇÃO (BRILHO) <span id="val-hrt-bri">0.04</span></label>
+        <input type="range" min="0.01" max="0.3" step="0.01" value="0.04" id="sld-hrt-bri" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #ffeb3b;">AGILIDADE DE DESLOCAMENTO <span id="val-move">1.0</span></label>
+        <input type="range" min="0.2" max="3.0" step="0.1" value="1.0" id="sld-move" oninput="updateEditor()">
       </div>
     </div>
 
@@ -741,10 +761,15 @@
   uniform vec3 pColor;  // OVERRIDE DE COR INDIVIDUAL
   uniform int pColorMode; // MODOS DE GRADIENTE (0=Rainbow, 1=Cyber, 2=Solar, 3=Abissal, 4=Organico, 5=Monocromo)
   
+  uniform float pHrtSpd; // VELOCIDADE DO PULSO DO CORAÇÃO
+  uniform float pHrtBri; // BRILHO DO PULSO DO CORAÇÃO
+  
   uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
   uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
   
   uniform float otherHeart[50]; // PONTOS VITAIS INIMIGOS
+  uniform float otherHrtSpd[50]; // VELOCIDADES DOS CORAÇÕES INIMIGOS
+  uniform float otherHrtBri[50]; // BRILHOS DOS CORAÇÕES INIMIGOS
   
   float sdSegment( in vec2 p, in vec2 a, in vec2 b ) {
       vec2 pa = p-a, ba = b-a;
@@ -1298,7 +1323,7 @@
         // CORAÇÃO LUMINOSO LOCAL
         float heartGlow = 0.0;
         float distToHeart = abs(i / max(pParticles, 1.0) - pHeart);
-        if (distToHeart < 0.07) heartGlow = (0.04 / (d + 0.001)) * (0.5 + 0.5 * sin(time * 10.0));
+        if (distToHeart < 0.07) heartGlow = (pHrtBri / (d + 0.001)) * (0.5 + 0.5 * sin(time * pHrtSpd));
 
         outColor += getSpirographColor(t, i, localSat) * ((pRes / (d + 0.001)) * localBri + heartGlow);
     }
@@ -1331,7 +1356,7 @@
             // CORAÇÃO LUMINOSO INIMIGO
             float oHeartGlow = 0.0;
             float distToOHeart = abs(i / maxP - otherHeart[k]);
-            if (distToOHeart < 0.07) oHeartGlow = (0.03 / (d + 0.001)) * (0.5 + 0.5 * sin(time * 10.0 + float(k)));
+            if (distToOHeart < 0.07) oHeartGlow = (otherHrtBri[k] / (d + 0.001)) * (0.5 + 0.5 * sin(time * otherHrtSpd[k] + float(k)));
 
             outColor += getSpirographColor(t + float(k), i, oSat) * ((0.002 / (d + 0.001)) * oBri + oHeartGlow);
         }
@@ -1360,6 +1385,8 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // VARIÁVEIS GLOBAIS DO LABORATÓRIO (MOVIDAS PARA O TOPO)
 var pRes = 0.003, pAura = 0.7, pSpinMult = 1.0, pFlowMult = 1.0, pSatBase = 1.3, pColorMode = 0;
+var pHrtSpd = 10.0, pHrtBri = 0.04, pMoveSpd = 1.0;
+var pDragForce = 0.0, pDragRange = 0.5, pGPull = 0.0, pGSteal = 0.0, pGFood = 0.0, pGRes = 0.0;
 var pTypeOverride = -1, pX = 1.0, pY = 1.0, pZ = 1.0, pW = 1.0;
 var pColor = [0.0, 0.0, 0.0];
 var pJitter = 0.0, pTwist = 0.0, pAb = 0.0, pBre = 0.0, pHcy = 1.0, pSke = 1.0;
@@ -1518,14 +1545,16 @@ function updateEditor() {
     pGrav = parseFloat(document.getElementById('sld-grav').value);
     pTacc = parseFloat(document.getElementById('sld-tacc').value);
 
-    // Sistema de Combate Gravitacional G-Combat
+    pGRes = parseFloat(document.getElementById('sld-gres').value);
+    pColorMode = parseInt(document.getElementById('sld-cmode').value);
+    pHrtSpd = parseFloat(document.getElementById('sld-hrt-spd').value);
+    pHrtBri = parseFloat(document.getElementById('sld-hrt-bri').value);
+    pMoveSpd = parseFloat(document.getElementById('sld-move').value);
+    pDragForce = parseFloat(document.getElementById('sld-gforce').value);
+    pDragRange = parseFloat(document.getElementById('sld-grange').value);
     pGPull = parseFloat(document.getElementById('sld-gpull').value);
     pGSteal = parseFloat(document.getElementById('sld-gsteal').value);
     pGFood = parseFloat(document.getElementById('sld-gfood').value);
-    pGRes = parseFloat(document.getElementById('sld-gres').value);
-    pColorMode = parseInt(document.getElementById('sld-cmode').value);
-
-    document.getElementById('val-ps').textContent = pRes;
     document.getElementById('val-aura').textContent = pAura;
     document.getElementById('val-spin').textContent = pSpinMult;
     document.getElementById('val-flow').textContent = pFlowMult;
@@ -1544,8 +1573,14 @@ function updateEditor() {
     document.getElementById('val-gfood').textContent = pGFood;
     document.getElementById('val-gres').textContent = pGRes;
     document.getElementById('val-cmode').textContent = pColorMode;
-    
-    // ATUALIZAÇÃO DA ENCICLOPÉDIA DA CURVA ATUAL
+    document.getElementById('val-hrt-spd').textContent = pHrtSpd;
+    document.getElementById('val-hrt-bri').textContent = pHrtBri;
+    document.getElementById('val-move').textContent = pMoveSpd;
+    document.getElementById('val-gforce').textContent = pDragForce;
+    document.getElementById('val-grange').textContent = pDragRange;
+    document.getElementById('val-gpull').textContent = pGPull;
+    document.getElementById('val-gsteal').textContent = pGSteal;
+    document.getElementById('val-gfood').textContent = pGFood;
     let meta = getCurveMeta(pTypeOverride);
     document.getElementById('meta-name').textContent = meta.name;
     document.getElementById('meta-family').textContent = meta.family;
@@ -1928,7 +1963,7 @@ function initMultiplayer() {
             channel.send({ 
                 type: 'broadcast', 
                 event: 'pos', 
-                payload: { id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, c: myCurve, p: myParticles, d: myDamage, g: myGlow, h: myHeart, s: score, gp: pGPull, gs: pGSteal, gf: pGFood, gr: pGRes } 
+                payload: { id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, c: myCurve, p: myParticles, d: myDamage, g: myGlow, h: myHeart, s: score, gp: pGPull, gs: pGSteal, gf: pGFood, gr: pGRes, hspd: pHrtSpd, hbri: pHrtBri } 
             });
             updatePlayersList(channel.presenceState()); // Garantir ranking local sempre atualizado
         }
@@ -2003,7 +2038,7 @@ function gameTick() {
     } else dashEnergy = Math.min(100, dashEnergy + 0.4);
     document.getElementById('dash-fill').style.width = dashEnergy + "%";
 
-    let turnSpeed = Math.max(0.04 * speedBoost - (myParticles / MAX_PARTICLES) * 0.025, 0.005);
+    let turnSpeed = Math.max(0.04 * speedBoost - (myParticles / MAX_PARTICLES) * 0.025, 0.005) * pMoveSpd;
     
     // As coordenadas brutas antes da física gravitacional
     playerX += (mouseX * 2.0) * turnSpeed;
@@ -2012,7 +2047,17 @@ function gameTick() {
     // G-COMBAT: Alcance de Vácuo aumentado pelo "Ralo Cósmico" (pGFood)
     let catchRadius = 0.05 + (myParticles / MAX_PARTICLES) * 0.12 + (pGFood * 0.05);
     foods.forEach((f, idx) => {
-        let d = Math.sqrt((playerX - f.x)**2 + (playerY - f.y)**2);
+        let dx = playerX - f.x;
+        let dy = playerY - f.y;
+        let d = Math.sqrt(dx*dx + dy*dy);
+
+        // NOVO: Arrasto Gravitacional Dinâmico (Rastejamento)
+        if (d < pDragRange && d > 0.01) {
+            let attract = (pDragForce * 0.015) / (d + 0.1);
+            f.x += (dx / d) * attract;
+            f.y += (dy / d) * attract;
+        }
+
         if (d < catchRadius) {
             score++; document.getElementById('score').textContent = score;
             if (myParticles < MAX_PARTICLES) myParticles += 1.0; // GANHA APENAS 1 DE MASSA
@@ -2214,6 +2259,8 @@ function render(now = 0) {
     gl.uniform1f(uPGrav, pGrav);
     gl.uniform1f(uPTacc, pTacc);
     gl.uniform1i(gl.getUniformLocation(program, 'pColorMode'), pColorMode);
+    gl.uniform1f(gl.getUniformLocation(program, 'pHrtSpd'), pHrtSpd);
+    gl.uniform1f(gl.getUniformLocation(program, 'pHrtBri'), pHrtBri);
 
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, renderPx, renderPy); 
@@ -2236,6 +2283,8 @@ function render(now = 0) {
         gl.uniform1f(gl.getUniformLocation(program, `otherDamage[${i}]`), o.d || 0);
         gl.uniform1f(gl.getUniformLocation(program, `otherGlow[${i}]`), o.g || 0);
         gl.uniform1f(gl.getUniformLocation(program, `otherHeart[${i}]`), o.h || 0);
+        gl.uniform1f(gl.getUniformLocation(program, `otherHrtSpd[${i}]`), o.hspd || 10.0);
+        gl.uniform1f(gl.getUniformLocation(program, `otherHrtBri[${i}]`), o.hbri || 0.04);
     });
     gl.uniform1i(uNumFood, foods.length);
     const fPosArr = new Float32Array(200); // 100 foods * 2 coords

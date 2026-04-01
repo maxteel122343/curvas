@@ -1252,13 +1252,6 @@
         if (distToHeart < 0.07) heartGlow = (0.04 / (d + 0.001)) * (0.5 + 0.5 * sin(time * 10.0));
 
         outColor += getSpirographColor(t, i, localSat) * ((pRes / (d + 0.001)) * localBri + heartGlow);
-        
-        // A ASSINATURA DE MOVIMENTO VETORIAL (ECO DE VIRADA / RASTRO POLLOCK)
-        if (pTai > 0.1) {
-            vec2 ecoOffset = pVel * pTai * 30.0; // Puxão visual pro passado
-            float dEco = sdSegment(uv, pos, pos - ecoOffset);
-            outColor += getSpirographColor(t, i, localSat) * (pRes / (dEco + 0.001)) * (localBri * 0.35);
-        }
     }
 
     // 3. Render Other Players
@@ -1292,13 +1285,6 @@
             if (distToOHeart < 0.07) oHeartGlow = (0.03 / (d + 0.001)) * (0.5 + 0.5 * sin(time * 10.0 + float(k)));
 
             outColor += getSpirographColor(t + float(k), i, oSat) * ((0.002 / (d + 0.001)) * oBri + oHeartGlow);
-
-            // ASSINATURA DE VOO INIMIGO
-            if (pTai > 0.1) {
-                vec2 ecoOffsetO = oVel * pTai * 30.0; 
-                float dEcoO = sdSegment(uv, pos, pos + ecoOffsetO);
-                outColor += getSpirographColor(t + float(k), i, oSat) * (0.002 / (dEcoO + 0.001)) * (oBri * 0.35);
-            }
         }
     }
 

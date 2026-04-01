@@ -594,6 +594,24 @@
         <label style="color: #ffeb3b;">AGILIDADE DE DESLOCAMENTO <span id="val-move">1.0</span></label>
         <input type="range" min="0.2" max="3.0" step="0.1" value="1.0" id="sld-move" oninput="updateEditor()">
       </div>
+      <div class="slider-row">
+        <label style="color: #ff3366;">DRENO DE BRILHO (ROUBO B) <span id="val-gst-bri">0.0</span></label>
+        <input type="range" min="0.0" max="2.0" step="0.1" value="0.0" id="sld-gst-bri" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #ff3366;">DRENO DE COR (ROUBO C) <span id="val-gst-col">0.0</span></label>
+        <input type="range" min="0.0" max="2.0" step="0.1" value="0.0" id="sld-gst-col" oninput="updateEditor()">
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label style="color: #00ffaa; font-size: 8px;">CONVERSÃO B (%) <span id="val-gre-bri">0</span></label>
+          <input type="range" min="0" max="100" step="1" value="3" id="sld-gre-bri" oninput="updateEditor()">
+        </div>
+        <div style="flex:1;">
+          <label style="color: #00ffaa; font-size: 8px;">CONVERSÃO C (%) <span id="val-gre-col">0</span></label>
+          <input type="range" min="0" max="100" step="1" value="3" id="sld-gre-col" oninput="updateEditor()">
+        </div>
+      </div>
     </div>
 
     <div class="slider-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; gap: 5px;">
@@ -1387,6 +1405,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var pRes = 0.003, pAura = 0.7, pSpinMult = 1.0, pFlowMult = 1.0, pSatBase = 1.3, pColorMode = 0;
 var pHrtSpd = 10.0, pHrtBri = 0.04, pMoveSpd = 1.0;
 var pDragForce = 0.0, pDragRange = 0.5, pGPull = 0.0, pGSteal = 0.0, pGFood = 0.0, pGRes = 0.0;
+var pGStealBri = 0.0, pGStealCol = 0.0, pGRecvBri = 0.03, pGRecvCol = 0.03;
 var pTypeOverride = -1, pX = 1.0, pY = 1.0, pZ = 1.0, pW = 1.0;
 var pColor = [0.0, 0.0, 0.0];
 var pJitter = 0.0, pTwist = 0.0, pAb = 0.0, pBre = 0.0, pHcy = 1.0, pSke = 1.0;
@@ -1555,6 +1574,10 @@ function updateEditor() {
     pGPull = parseFloat(document.getElementById('sld-gpull').value);
     pGSteal = parseFloat(document.getElementById('sld-gsteal').value);
     pGFood = parseFloat(document.getElementById('sld-gfood').value);
+    pGStealBri = parseFloat(document.getElementById('sld-gst-bri').value);
+    pGStealCol = parseFloat(document.getElementById('sld-gst-col').value);
+    pGRecvBri = parseFloat(document.getElementById('sld-gre-bri').value) / 100;
+    pGRecvCol = parseFloat(document.getElementById('sld-gre-col').value) / 100;
     document.getElementById('val-aura').textContent = pAura;
     document.getElementById('val-spin').textContent = pSpinMult;
     document.getElementById('val-flow').textContent = pFlowMult;
@@ -1568,10 +1591,6 @@ function updateEditor() {
     document.getElementById('val-grav').textContent = pGrav;
     document.getElementById('val-tacc').textContent = pTacc;
     
-    document.getElementById('val-gpull').textContent = pGPull;
-    document.getElementById('val-gsteal').textContent = pGSteal;
-    document.getElementById('val-gfood').textContent = pGFood;
-    document.getElementById('val-gres').textContent = pGRes;
     document.getElementById('val-cmode').textContent = pColorMode;
     document.getElementById('val-hrt-spd').textContent = pHrtSpd;
     document.getElementById('val-hrt-bri').textContent = pHrtBri;
@@ -1963,7 +1982,12 @@ function initMultiplayer() {
             channel.send({ 
                 type: 'broadcast', 
                 event: 'pos', 
-                payload: { id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, c: myCurve, p: myParticles, d: myDamage, g: myGlow, h: myHeart, s: score, gp: pGPull, gs: pGSteal, gf: pGFood, gr: pGRes, hspd: pHrtSpd, hbri: pHrtBri } 
+                payload: { 
+                    id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, 
+                    c: myCurve, p: myParticles, d: myDamage, g: myGlow, h: myHeart, s: score, 
+                    gp: pGPull, gs: pGSteal, gf: pGFood, gr: pGRes, hspd: pHrtSpd, hbri: pHrtBri,
+                    gsb: pGStealBri, gsc: pGStealCol 
+                } 
             });
             updatePlayersList(channel.presenceState()); // Garantir ranking local sempre atualizado
         }
@@ -2094,6 +2118,34 @@ function gameTick() {
                 myParticles -= netSteal * 0.5; // Roubo passivo
                 myDamage = Math.min(1.0, myDamage + 0.02); // Fraqueza
             }
+        }
+
+        // NOVO G-COMBAT 2.1: LADRÃO DE FÓTONS (BRILHO E COR)
+        let hisStealBri = o.gsb || 0;
+        let hisStealCol = o.gsc || 0;
+        
+        let netStealBri = hisStealBri - myRes * 3.0; // Resistência protege brilho também
+        if (netStealBri > 0.0 && d < 1.5) {
+            myDamage = Math.min(1.0, myDamage + netStealBri * 0.015);
+            // Sou drenado pelo oponente
+        }
+        
+        let netStealCol = hisStealCol - myRes * 3.0;
+        if (netStealCol > 0.0 && d < 1.5) {
+            // Perda de cor (saturação acumulada em pDamage ou decaimento direto)
+            myDamage = Math.min(1.0, myDamage + netStealCol * 0.02);
+        }
+
+        // MEU ATAQUE VAMPÍRICO (EU RECEBO O QUE SUGO DELE)
+        let myNetStealBri = pGStealBri - (o.gr || 0) * 3.0;
+        if (myNetStealBri > 0.0 && d < 1.5) {
+            myGlow = Math.min(1.2, myGlow + myNetStealBri * pGRecvBri * 0.1); 
+            // Eu ganho brilho real sugando dele!
+        }
+        
+        let myNetStealCol = pGStealCol - (o.gr || 0) * 3.0;
+        if (myNetStealCol > 0.0 && d < 1.5) {
+            pSatBase = Math.min(2.5, pSatBase + myNetStealCol * pGRecvCol * 0.05);
         }
 
         // HEART DETECTION: Se eu acertar o centro dele no coração luminoso

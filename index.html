@@ -571,7 +571,7 @@
         <input type="range" min="0.0" max="10.0" step="0.5" value="0.0" id="sld-gfood" oninput="updateEditor()">
       </div>
       <div class="slider-row">
-        <label style="color: #00ffaa;">FORÇA DE ARRASTO (RASPEJAR) <span id="val-gforce">0.0</span></label>
+        <label style="color: #00ffaa;">FORÇA DE ARRASTO (RASTEJAR) <span id="val-gforce">0.0</span></label>
         <input type="range" min="0.0" max="5.0" step="0.1" value="0.0" id="sld-gforce" oninput="updateEditor()">
       </div>
       <div class="slider-row">
@@ -621,7 +621,7 @@
         <input type="range" min="0.1" max="5.0" step="0.1" value="1.5" id="sld-gst-col-rng" oninput="updateEditor()">
       </div>
       <div class="slider-row">
-        <label style="color: #ffeb3b; font-size: 9px;">DRENO DE ESFERAS (BILHO) <span id="val-f-gst-bri">0.0</span></label>
+        <label style="color: #ffeb3b; font-size: 9px;">DRENO DE ESFERAS (BRILHO) <span id="val-f-gst-bri">0.0</span></label>
         <input type="range" min="0.0" max="1.0" step="0.05" value="0.0" id="sld-f-gst-bri" oninput="updateEditor()">
       </div>
     </div>
@@ -793,6 +793,8 @@
   
   uniform float pHrtSpd; // VELOCIDADE DO PULSO DO CORAÇÃO
   uniform float pHrtBri; // BRILHO DO PULSO DO CORAÇÃO
+  
+  uniform float pfGStealBri; // DRENO DE BRILHO DO CENÁRIO (VOMPIRISM)
   
   uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
   uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
@@ -1295,12 +1297,23 @@
         }
     }
 
+    // 1. Render Food/Energy Spheres (with DRAIN logic)
     for(int j = 0; j < 100; j++) {
         if (j >= numFood) break;
         vec2 fRelative = foodPos[j] - uCameraPos;
         float dFood = length(uv - fRelative);
+        float distToPlayer = length(fRelative); // Distância da esfera ao player (centro da tela)
+        
         float hue = foodHue[j];
         vec3 fColor = vec3(0.5 + 0.5 * sin(hue), 0.5 + 0.5 * cos(hue + 2.0), 0.5 + 0.5 * sin(hue + 4.0));
+        
+        // NOVO G-COMBAT: DRENO VISUAL DO CENÁRIO
+        if (distToPlayer < 0.7) {
+             float drainFactor = smoothstep(0.7, 0.1, distToPlayer) * pfGStealBri;
+             fColor *= (1.0 - drainFactor * 0.95); // Apaga brilho
+             fColor = mix(fColor, vec3(dot(fColor, vec3(0.33))), drainFactor); // Apaga cor
+        }
+        
         outColor += fColor * (0.015 / (dFood + 0.001)) * (0.8 + 0.2 * sin(time * 8.0 + float(j)));
     }
 
@@ -1619,8 +1632,8 @@ function updateEditor() {
     document.getElementById('val-gres').textContent = pGRes;
     document.getElementById('val-gst-bri').textContent = pGStealBri.toFixed(1);
     document.getElementById('val-gst-col').textContent = pGStealCol.toFixed(1);
-    document.getElementById('val-gre-bri').textContent = (pGRecvBri * 100).toFixed(0);
-    document.getElementById('val-gre-col').textContent = (pGRecvCol * 100).toFixed(0);
+    document.getElementById('val-gre-bri').textContent = (pGRecvBri * 100).toFixed(0) + "%";
+    document.getElementById('val-gre-col').textContent = (pGRecvCol * 100).toFixed(0) + "%";
     document.getElementById('val-gst-bri-rng').textContent = pGStealBriRng.toFixed(1);
     document.getElementById('val-gst-col-rng').textContent = pGStealColRng.toFixed(1);
     document.getElementById('val-f-gst-bri').textContent = pfGStealBri.toFixed(2);
@@ -2343,6 +2356,7 @@ function render(now = 0) {
     gl.uniform1i(gl.getUniformLocation(program, 'pColorMode'), pColorMode);
     gl.uniform1f(gl.getUniformLocation(program, 'pHrtSpd'), pHrtSpd);
     gl.uniform1f(gl.getUniformLocation(program, 'pHrtBri'), pHrtBri);
+    gl.uniform1f(gl.getUniformLocation(program, 'pfGStealBri'), pfGStealBri);
 
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, renderPx, renderPy); 

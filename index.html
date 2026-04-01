@@ -624,6 +624,10 @@
         <label style="color: #ffeb3b; font-size: 9px;">DRENO DE ESFERAS (BRILHO) <span id="val-f-gst-bri">0.0</span></label>
         <input type="range" min="0.0" max="1.0" step="0.05" value="0.0" id="sld-f-gst-bri" oninput="updateEditor()">
       </div>
+      <div class="slider-row">
+        <label style="color: #ffeb3b; font-size: 9px;">DRENO DE ESFERAS (COR) <span id="val-f-gst-col">0.0</span></label>
+        <input type="range" min="0.0" max="1.0" step="0.05" value="0.0" id="sld-f-gst-col" oninput="updateEditor()">
+      </div>
     </div>
 
     <div class="slider-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; gap: 5px;">
@@ -769,6 +773,7 @@
 
   uniform vec2 foodPos[100];
   uniform float foodHue[100];
+  uniform float foodSize[100]; // NOVO: TAMANHO INDIVIDUAL DAS ESFERAS
   uniform int numFood;
   uniform float pDamage; // Estado de fraqueza local
   uniform float pGlow;  // ESTADO DE BRILHO EXTRA LOCAL
@@ -795,6 +800,7 @@
   uniform float pHrtBri; // BRILHO DO PULSO DO CORAÇÃO
   
   uniform float pfGStealBri; // DRENO DE BRILHO DO CENÁRIO (VOMPIRISM)
+  uniform float pfGStealCol; // DRENO DE COR DO CENÁRIO
   
   uniform vec2 expPos[5]; // POSIÇÕES DAS EXPLOSÕES
   uniform float expTime[5]; // TEMPO DAS EXPLOSÕES (0.0 a 1.0)
@@ -1303,18 +1309,21 @@
         vec2 fRelative = foodPos[j] - uCameraPos;
         float dFood = length(uv - fRelative);
         float distToPlayer = length(fRelative); // Distância da esfera ao player (centro da tela)
+        float fSize = foodSize[j];
         
         float hue = foodHue[j];
         vec3 fColor = vec3(0.5 + 0.5 * sin(hue), 0.5 + 0.5 * cos(hue + 2.0), 0.5 + 0.5 * sin(hue + 4.0));
         
         // NOVO G-COMBAT: DRENO VISUAL DO CENÁRIO
         if (distToPlayer < 0.7) {
-             float drainFactor = smoothstep(0.7, 0.1, distToPlayer) * pfGStealBri;
-             fColor *= (1.0 - drainFactor * 0.95); // Apaga brilho
-             fColor = mix(fColor, vec3(dot(fColor, vec3(0.33))), drainFactor); // Apaga cor
+             float drainB = smoothstep(0.7, 0.1, distToPlayer) * pfGStealBri;
+             float drainC = smoothstep(0.7, 0.1, distToPlayer) * pfGStealCol;
+             fColor *= (1.0 - drainB * 0.95); // Apaga brilho
+             fColor = mix(fColor, vec3(dot(fColor, vec3(0.33))), drainC); // Apaga cor
         }
         
-        outColor += fColor * (0.015 / (dFood + 0.001)) * (0.8 + 0.2 * sin(time * 8.0 + float(j)));
+        float brIntensity = (0.015 * fSize) / (dFood + 0.001 * fSize);
+        outColor += fColor * brIntensity * (0.8 + 0.2 * sin(time * 8.0 + float(j)));
     }
 
     // 2. Render Local Player at screen center
@@ -1431,7 +1440,7 @@ var pRes = 0.003, pAura = 0.7, pSpinMult = 1.0, pFlowMult = 1.0, pSatBase = 1.3,
 var pHrtSpd = 10.0, pHrtBri = 0.04, pMoveSpd = 1.0;
 var pDragForce = 0.0, pDragRange = 0.5, pGPull = 0.0, pGSteal = 0.0, pGFood = 0.0, pGRes = 0.0;
 var pGStealBri = 0.0, pGStealCol = 0.0, pGRecvBri = 0.03, pGRecvCol = 0.03;
-var pGStealBriRng = 1.5, pGStealColRng = 1.5, pfGStealBri = 0.0;
+var pGStealBriRng = 1.5, pGStealColRng = 1.5, pfGStealBri = 0.0, pfGStealCol = 0.0;
 var pTypeOverride = -1, pX = 1.0, pY = 1.0, pZ = 1.0, pW = 1.0;
 var pColor = [0.0, 0.0, 0.0];
 var pJitter = 0.0, pTwist = 0.0, pAb = 0.0, pBre = 0.0, pHcy = 1.0, pSke = 1.0;
@@ -1607,6 +1616,7 @@ function updateEditor() {
     pGStealBriRng = parseFloat(document.getElementById('sld-gst-bri-rng').value);
     pGStealColRng = parseFloat(document.getElementById('sld-gst-col-rng').value);
     pfGStealBri = parseFloat(document.getElementById('sld-f-gst-bri').value);
+    pfGStealCol = parseFloat(document.getElementById('sld-f-gst-col').value);
     document.getElementById('val-aura').textContent = pAura;
     document.getElementById('val-spin').textContent = pSpinMult;
     document.getElementById('val-flow').textContent = pFlowMult;
@@ -1637,6 +1647,7 @@ function updateEditor() {
     document.getElementById('val-gst-bri-rng').textContent = pGStealBriRng.toFixed(1);
     document.getElementById('val-gst-col-rng').textContent = pGStealColRng.toFixed(1);
     document.getElementById('val-f-gst-bri').textContent = pfGStealBri.toFixed(2);
+    document.getElementById('val-f-gst-col').textContent = pfGStealCol.toFixed(2);
     let meta = getCurveMeta(pTypeOverride);
     document.getElementById('meta-name').textContent = meta.name;
     document.getElementById('meta-family').textContent = meta.family;
@@ -1914,6 +1925,7 @@ function initWebGL() {
     uNumOthers = gl.getUniformLocation(program, 'numOthers');
     uFoodPos = gl.getUniformLocation(program, 'foodPos');
     uFoodHue = gl.getUniformLocation(program, 'foodHue');
+    uFoodSize = gl.getUniformLocation(program, 'foodSize'); // NOVO: Link de escala
     uNumFood = gl.getUniformLocation(program, 'numFood');
     uOtherLimit = gl.getUniformLocation(program, 'otherLimit');
     uPDamage = gl.getUniformLocation(program, 'pDamage');
@@ -2072,14 +2084,43 @@ function isHost() {
 
 function initFoods() {
     foods = [];
-    for(let i=0; i<100; i++) {
-        foods.push({ x: (Math.random() * 2 - 1) * MAP_SIZE, y: (Math.random() * 2 - 1) * MAP_SIZE, hue: Math.random() * Math.PI * 2 });
+    const numClusters = 5;
+    for (let c = 0; c < numClusters; c++) {
+        let centerX = (Math.random() - 0.5) * MAP_SIZE * 1.5;
+        let centerY = (Math.random() - 0.5) * MAP_SIZE * 1.5;
+        let clusterColor = Math.random() * 6.28;
+        let spheresInCluster = 15 + Math.floor(Math.random() * 5);
+        for (let i = 0; i < spheresInCluster; i++) {
+            let angle = Math.random() * 6.28;
+            let dist = Math.random() * (MAP_SIZE * 0.2); 
+            let typeRand = Math.random();
+            let size = 1.0, mass = 1.0;
+            if (typeRand > 0.95) { size = 5.0; mass = 5.0; } 
+            else if (typeRand > 0.8) { size = 2.0; mass = 2.0; } 
+            foods.push({
+                x: centerX + Math.cos(angle) * dist,
+                y: centerY + Math.sin(angle) * dist,
+                hue: clusterColor + (Math.random() - 0.5) * 0.5,
+                size: size,
+                mass: mass
+            });
+        }
     }
     syncFoods();
 }
 
 function respawnFood(index) {
-    foods[index] = { x: (Math.random() * 2 - 1) * MAP_SIZE, y: (Math.random() * 2 - 1) * MAP_SIZE, hue: Math.random() * Math.PI * 2 };
+    let typeRand = Math.random();
+    let size = 1.0, mass = 1.0;
+    if (typeRand > 0.95) { size = 5.0; mass = 5.0; }
+    else if (typeRand > 0.8) { size = 2.0; mass = 2.0; }
+    foods[index] = { 
+        x: (Math.random() * 2 - 1) * MAP_SIZE, 
+        y: (Math.random() * 2 - 1) * MAP_SIZE, 
+        hue: Math.random() * Math.PI * 2,
+        size: size,
+        mass: mass
+    };
     syncFoods();
 }
 
@@ -2106,11 +2147,13 @@ function gameTick() {
     playerY += (mouseY * 2.0) * turnSpeed;
     
     // G-COMBAT: Alcance de Vácuo aumentado pelo "Ralo Cósmico" (pGFood)
-    let catchRadius = 0.05 + (myParticles / MAX_PARTICLES) * 0.12 + (pGFood * 0.05);
     foods.forEach((f, idx) => {
         let dx = playerX - f.x;
         let dy = playerY - f.y;
         let d = Math.sqrt(dx*dx + dy*dy);
+
+        // Ajusta raio de captura baseado no tamanho da esfera (+ fácil coletar gigantes)
+        let catchRadius = (0.05 + (myParticles / MAX_PARTICLES) * 0.12 + (pGFood * 0.05)) * (0.8 + f.size * 0.4);
 
         // NOVO: Arrasto Gravitacional Dinâmico (Rastejamento)
         if (d < pDragRange && d > 0.01) {
@@ -2120,15 +2163,16 @@ function gameTick() {
         }
         
         // NOVO G-COMBAT 2.2: DRENO DE ESFERA (CENÁRIO)
-        if (d < pDragRange && pfGStealBri > 0.0) {
-            // Sucesso do dreno dno cenário: o jogador ganha brilho ao sugar do cenário
-            myGlow = Math.min(1.2, myGlow + pfGStealBri * 0.005);
+        if (d < pDragRange) {
+            if (pfGStealBri > 0.0) myGlow = Math.min(1.2, myGlow + pfGStealBri * 0.005);
+            if (pfGStealCol > 0.0) pSatBase = Math.min(2.5, pSatBase + pfGStealCol * 0.005);
         }
 
         if (d < catchRadius) {
-            score++; document.getElementById('score').textContent = score;
-            if (myParticles < MAX_PARTICLES) myParticles += 1.0; // GANHA APENAS 1 DE MASSA
-            myGlow = Math.min(1.2, myGlow + 0.4); // Brilho de alimentação!
+            score += f.mass || 1; 
+            document.getElementById('score').textContent = score;
+            if (myParticles < MAX_PARTICLES) myParticles += (f.mass || 1.0); 
+            myGlow = Math.min(1.2, myGlow + 0.2 * (f.mass || 1.0)); // Brilho maior para comidas maiores!
             myDamage = 0; // CURA IMEDIATA DO MOVIMENTO E BRILHO
             channel.send({ type: 'broadcast', event: 'eat', payload: { index: idx } });
             f.x = -999; 
@@ -2357,6 +2401,7 @@ function render(now = 0) {
     gl.uniform1f(gl.getUniformLocation(program, 'pHrtSpd'), pHrtSpd);
     gl.uniform1f(gl.getUniformLocation(program, 'pHrtBri'), pHrtBri);
     gl.uniform1f(gl.getUniformLocation(program, 'pfGStealBri'), pfGStealBri);
+    gl.uniform1f(gl.getUniformLocation(program, 'pfGStealCol'), pfGStealCol);
 
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, renderPx, renderPy); 
@@ -2385,14 +2430,17 @@ function render(now = 0) {
     gl.uniform1i(uNumFood, foods.length);
     const fPosArr = new Float32Array(200); // 100 foods * 2 coords
     const fHueArr = new Float32Array(100);
+    const fSizeArr = new Float32Array(100); // NOVO
     foods.forEach((f, i) => {
         if (i < 100) {
             fPosArr[i*2] = f.x; fPosArr[i*2+1] = f.y;
             fHueArr[i] = f.hue;
+            fSizeArr[i] = f.size || 1.0;
         }
     });
     gl.uniform2fv(uFoodPos, fPosArr);
     gl.uniform1fv(uFoodHue, fHueArr);
+    gl.uniform1fv(uFoodSize, fSizeArr);
 
     // Passar explosões para o shader de forma rápida
     for(let n = 0; n < 5; n++) {

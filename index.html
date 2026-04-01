@@ -517,6 +517,19 @@
       <label style="color: #ff3366;">MASSA MÁGICA (PARTÍCULAS) <span id="val-mass-sld">10</span></label>
       <input type="range" min="10" max="300" step="1" value="10" id="sld-mass" oninput="updateMassManual()">
     </div>
+    
+    <div style="border: 1px solid rgba(255,100,50,0.5); padding: 10px; margin-bottom: 12px; background: rgba(255,100,50,0.05); border-radius: 5px;">
+      <h4 style="margin: 0 0 10px 0; color: #ff6633; text-transform: uppercase; font-size: 10px; letter-spacing: 2px;">Leis da Relatividade Mestra</h4>
+      <div class="slider-row">
+        <label style="color: #ffaa00;">Gravidade (Distórtica) <span id="val-grav">0.0</span></label>
+        <input type="range" min="-1.5" max="3.0" step="0.1" value="0.0" id="sld-grav" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #ffaa00;">Aceleração do Tempo (T) <span id="val-tacc">1.0</span></label>
+        <input type="range" min="-2.0" max="5.0" step="0.1" value="1.0" id="sld-tacc" oninput="updateEditor()">
+      </div>
+    </div>
+
     <div class="slider-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
       <label style="margin: 0; color: #ffeb3b;">COR INDIVIDUAL / MULTICOR (Preto = Multicor)</label>
       <input type="color" id="inp-color" value="#000000" onchange="updateEditor()" style="width: 40px; height: 30px; background: none; border: 1px solid rgba(0,242,255,0.4); cursor: pointer;">
@@ -645,6 +658,9 @@
   uniform float otherDamage[50]; // Estado de fraqueza dos inimigos
   uniform float otherGlow[50]; // ESTADO DE BRILHO EXTRA
   uniform int numOthers;
+  
+  uniform float pGrav;
+  uniform float pTacc;
   uniform float otherLimit; 
 
   uniform vec2 foodPos[100];
@@ -1165,9 +1181,22 @@
     
     for(float i = 0.0; i < 300.0; i++) {
         if (i >= pParticles) break;
-        // APRIMORAMENTO 1: DENSIDADE (STEP)
+        // APRIMORAMENTO 1: DENSIDADE E TEMPO
         float stepI = i * pDen;
-        vec2 pos = getCurvePos(pCurve, t, stepI, pParticles * pDen, uParams);
+        float localTime = t * pTacc; // Aceleração Temporal
+        
+        vec2 pos = getCurvePos(pCurve, localTime, stepI, pParticles * pDen, uParams);
+
+        // APLICAÇÃO DE GRAVIDADE (BURACO NEGRO RADIAL)
+        if (abs(pGrav) > 0.0) {
+             float dist = length(pos);
+             float pull = pGrav / (dist + 0.15); // A força da gravidade
+             pos *= (1.0 - clamp(pull, -5.0, 0.95)); // O "Esmagamento" pro centro ou explosão
+             // REDSHIFT RELATIVISTICA: Se estiver perto de alta gravidade, a cor desvia e apaga
+             float redshift = 1.0 - smoothstep(0.0, 1.5, abs(pull) * 1.5);
+             localBri *= redshift; 
+             localSat *= (1.0 + redshift);
+        }
 
         // TORÇÃO (HELIX)
         float ang = i * pTwist * 0.05;
@@ -1296,7 +1325,7 @@ let lastPlayersMass = {};
 let uTime, uRes, uSat, uBri, uOtherLimit, uCameraPos, uPDamage, uPGlow, uPHeart, uPK;
 let uPPos, uPVel, uPCurve, uPPart;
 let uOtherPos, uOtherVel, uOtherCurve, uOtherPart, uNumOthers, uOtherDamage, uOtherGlow, uOtherHeart;
-let uFoodPos, uFoodHue, uNumFood, uPPow, uPFlo;
+let uFoodPos, uFoodHue, uNumFood, uPPow, uPFlo, uPGrav, uPTacc;
 let uExpPos, uExpTime;
 
 let explosions = []; // { x, y, start }
@@ -1408,6 +1437,8 @@ function updateEditor() {
     pZoo = parseFloat(document.getElementById('sld-zoo').value);
     pPow = parseFloat(document.getElementById('sld-pow').value);
     pFlo = parseFloat(document.getElementById('sld-flo').value);
+    pGrav = parseFloat(document.getElementById('sld-grav').value);
+    pTacc = parseFloat(document.getElementById('sld-tacc').value);
 
     document.getElementById('val-ps').textContent = pRes;
     document.getElementById('val-aura').textContent = pAura;
@@ -1420,6 +1451,8 @@ function updateEditor() {
     document.getElementById('val-z').textContent = pZ;
     document.getElementById('val-w').textContent = pW;
     document.getElementById('val-k').textContent = pK;
+    document.getElementById('val-grav').textContent = pGrav;
+    document.getElementById('val-tacc').textContent = pTacc;
     
     // ATUALIZAÇÃO DA ENCICLOPÉDIA DA CURVA ATUAL
     let meta = getCurveMeta(pTypeOverride);
@@ -1695,6 +1728,8 @@ function initWebGL() {
     uPPow = gl.getUniformLocation(program, 'pPow');
     uPK = gl.getUniformLocation(program, 'pK');
     uPFlo = gl.getUniformLocation(program, 'pFlo');
+    uPGrav = gl.getUniformLocation(program, 'pGrav');
+    uPTacc = gl.getUniformLocation(program, 'pTacc');
     
     // Minimap Init
     minimapCanvas = document.getElementById('minimap-canvas');
@@ -2039,6 +2074,9 @@ function render(now = 0) {
     gl.uniform1f(uPFlo, pFlo);
     gl.uniform1i(gl.getUniformLocation(program, 'uBgMode'), bgMode);
     
+    gl.uniform1f(uPGrav, pGrav);
+    gl.uniform1f(uPTacc, pTacc);
+
     gl.uniform2f(uCameraPos, playerX, playerY);
     gl.uniform2f(uPPos, renderPx, renderPy); 
     gl.uniform2f(uPVel, playerVelX, playerVelY);

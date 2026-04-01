@@ -36,7 +36,7 @@
     justify-content: center;
     z-index: 1000;
     transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(0px);
   }
   #overlay.hidden {
     opacity: 0;
@@ -128,7 +128,7 @@
     left: auto !important;
     transform: none !important;
     background: rgba(0,0,0,0.1) !important; 
-    backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(2px) !important;
     padding: 15px !important;
     z-index: 3000 !important;
     display: block !important;
@@ -138,7 +138,31 @@
     border: none !important;
     box-shadow: none !important;
     pointer-events: auto !important;
+    transition: max-height 0.3s ease, padding 0.3s ease;
   }
+  #creative-lab.minimized {
+    max-height: 50px !important;
+    overflow: hidden !important;
+    padding-bottom: 0 !important;
+  }
+  .lab-toggle-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    z-index: 3010;
+  }
+  .lab-toggle-btn:hover { background: rgba(255,255,255,0.2); }
   #creative-lab.active { display: block !important; }
   .creative-lab h2 { margin-top: 0; font-size: 1.2rem; text-transform: uppercase; color: var(--primary); }
   .alchemy-row {
@@ -437,9 +461,9 @@
     <p style="color: var(--primary); letter-spacing: 4px; font-weight: bold; margin-top: 5px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0,242,255,0.5);">A Guerra dos Espirógrafos</p>
   </div>
 
-  <div style="position: absolute; top: 38%; text-align: center; width: 100%; pointer-events: none;">
+  <div style="position: absolute; top: 25%; left: 8%; text-align: left; width: 400px; pointer-events: none;">
     <p style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 3px;">Seu Avatar Numérico</p>
-    <h2 id="preview-curve-name" style="color: #00ffaa; margin: 0; font-size: 1.2rem; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 255, 170, 0.4); pointer-events: auto; display: inline-block;">Sorteando Matemática...</h2>
+    <h2 id="preview-curve-name" style="color: #00ffaa; margin: 0; font-size: 1.5rem; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 255, 170, 0.4); pointer-events: auto; display: block;">Sorteando Matemática...</h2>
     <div style="margin-top: 15px;">
        <button onclick="randomizeSpawnCurve()" style="pointer-events: auto; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,51,102,0.5); color: #ff3366; padding: 8px 20px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(5px);" onmouseover="this.style.background='rgba(255,51,102,0.2)'; this.style.borderColor='#ff3366'; this.style.transform='scale(1.05)';" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.borderColor='rgba(255,51,102,0.5)'; this.style.transform='scale(1)';">Trocar Genoma</button>
     </div>
@@ -455,6 +479,7 @@
 </div>
 
 <div id="creative-lab" class="creative-lab">
+  <button class="lab-toggle-btn" onclick="toggleMinimizeLab()" title="Minimizar/Expandir Editor">_</button>
   <div class="prompt-row">
     <input type="text" id="cosmic-prompt" class="prompt-input" placeholder="Peça algo à IA (ex: 'Algo calmo', 'Caótico')...">
     <button class="prompt-btn" onclick="processCosmicPrompt()">IA</button>
@@ -556,12 +581,12 @@
       <input type="color" id="inp-color" value="#000000" onchange="updateEditor()" style="width: 40px; height: 30px; background: none; border: 1px solid rgba(0,242,255,0.4); cursor: pointer;">
     </div>
     <div class="slider-row">
-      <label>TAMANHO DO PONTO <span id="val-ps">0.004</span></label>
-      <input type="range" min="0.001" max="0.015" step="0.001" value="0.004" id="sld-ps" oninput="updateEditor()">
+      <label>TAMANHO DO PONTO <span id="val-ps">0.003</span></label>
+      <input type="range" min="0.001" max="0.015" step="0.001" value="0.003" id="sld-ps" oninput="updateEditor()">
     </div>
     <div class="slider-row">
-      <label>AURA (GLOW) <span id="val-aura">1.1</span></label>
-      <input type="range" min="0.5" max="3.0" step="0.1" value="1.1" id="sld-aura" oninput="updateEditor()">
+      <label>AURA (GLOW) <span id="val-aura">0.7</span></label>
+      <input type="range" min="0.3" max="3.0" step="0.1" value="0.7" id="sld-aura" oninput="updateEditor()">
     </div>
     <div class="slider-row">
       <label>VELO. FLUXO (TEMPO) <span id="val-flow">1.0</span></label>
@@ -1310,7 +1335,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // VARIÁVEIS GLOBAIS DO LABORATÓRIO (MOVIDAS PARA O TOPO)
-var pRes = 0.004, pAura = 1.1, pSpinMult = 1.0, pFlowMult = 1.0, pSatBase = 1.3;
+var pRes = 0.003, pAura = 0.7, pSpinMult = 1.0, pFlowMult = 1.0, pSatBase = 1.3;
 var pTypeOverride = -1, pX = 1.0, pY = 1.0, pZ = 1.0, pW = 1.0;
 var pColor = [0.0, 0.0, 0.0];
 var pJitter = 0.0, pTwist = 0.0, pAb = 0.0, pBre = 0.0, pHcy = 1.0, pSke = 1.0;
@@ -1641,6 +1666,12 @@ function processCosmicPrompt() {
 function toggleSettings() {
     const p = document.getElementById('creative-lab');
     p.classList.toggle('active');
+}
+function toggleMinimizeLab() {
+    const p = document.getElementById('creative-lab');
+    p.classList.toggle('minimized');
+    const btn = document.querySelector('.lab-toggle-btn');
+    btn.textContent = p.classList.contains('minimized') ? '□' : '_';
 }
 
 function setQuality(lvl) {

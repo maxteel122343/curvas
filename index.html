@@ -612,6 +612,18 @@
           <input type="range" min="0" max="100" step="1" value="3" id="sld-gre-col" oninput="updateEditor()">
         </div>
       </div>
+      <div class="slider-row" style="margin-top:10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:10px;">
+        <label style="color: #00ffaa; font-size: 9px;">ALCANCE DRENO B <span id="val-gst-bri-rng">1.5</span></label>
+        <input type="range" min="0.1" max="5.0" step="0.1" value="1.5" id="sld-gst-bri-rng" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #00ffaa; font-size: 9px;">ALCANCE DRENO C <span id="val-gst-col-rng">1.5</span></label>
+        <input type="range" min="0.1" max="5.0" step="0.1" value="1.5" id="sld-gst-col-rng" oninput="updateEditor()">
+      </div>
+      <div class="slider-row">
+        <label style="color: #ffeb3b; font-size: 9px;">DRENO DE ESFERAS (BILHO) <span id="val-f-gst-bri">0.0</span></label>
+        <input type="range" min="0.0" max="1.0" step="0.05" value="0.0" id="sld-f-gst-bri" oninput="updateEditor()">
+      </div>
     </div>
 
     <div class="slider-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; gap: 5px;">
@@ -1406,6 +1418,7 @@ var pRes = 0.003, pAura = 0.7, pSpinMult = 1.0, pFlowMult = 1.0, pSatBase = 1.3,
 var pHrtSpd = 10.0, pHrtBri = 0.04, pMoveSpd = 1.0;
 var pDragForce = 0.0, pDragRange = 0.5, pGPull = 0.0, pGSteal = 0.0, pGFood = 0.0, pGRes = 0.0;
 var pGStealBri = 0.0, pGStealCol = 0.0, pGRecvBri = 0.03, pGRecvCol = 0.03;
+var pGStealBriRng = 1.5, pGStealColRng = 1.5, pfGStealBri = 0.0;
 var pTypeOverride = -1, pX = 1.0, pY = 1.0, pZ = 1.0, pW = 1.0;
 var pColor = [0.0, 0.0, 0.0];
 var pJitter = 0.0, pTwist = 0.0, pAb = 0.0, pBre = 0.0, pHcy = 1.0, pSke = 1.0;
@@ -1578,6 +1591,9 @@ function updateEditor() {
     pGStealCol = parseFloat(document.getElementById('sld-gst-col').value);
     pGRecvBri = parseFloat(document.getElementById('sld-gre-bri').value) / 100;
     pGRecvCol = parseFloat(document.getElementById('sld-gre-col').value) / 100;
+    pGStealBriRng = parseFloat(document.getElementById('sld-gst-bri-rng').value);
+    pGStealColRng = parseFloat(document.getElementById('sld-gst-col-rng').value);
+    pfGStealBri = parseFloat(document.getElementById('sld-f-gst-bri').value);
     document.getElementById('val-aura').textContent = pAura;
     document.getElementById('val-spin').textContent = pSpinMult;
     document.getElementById('val-flow').textContent = pFlowMult;
@@ -1600,6 +1616,14 @@ function updateEditor() {
     document.getElementById('val-gpull').textContent = pGPull;
     document.getElementById('val-gsteal').textContent = pGSteal;
     document.getElementById('val-gfood').textContent = pGFood;
+    document.getElementById('val-gres').textContent = pGRes;
+    document.getElementById('val-gst-bri').textContent = pGStealBri.toFixed(1);
+    document.getElementById('val-gst-col').textContent = pGStealCol.toFixed(1);
+    document.getElementById('val-gre-bri').textContent = (pGRecvBri * 100).toFixed(0);
+    document.getElementById('val-gre-col').textContent = (pGRecvCol * 100).toFixed(0);
+    document.getElementById('val-gst-bri-rng').textContent = pGStealBriRng.toFixed(1);
+    document.getElementById('val-gst-col-rng').textContent = pGStealColRng.toFixed(1);
+    document.getElementById('val-f-gst-bri').textContent = pfGStealBri.toFixed(2);
     let meta = getCurveMeta(pTypeOverride);
     document.getElementById('meta-name').textContent = meta.name;
     document.getElementById('meta-family').textContent = meta.family;
@@ -1986,7 +2010,7 @@ function initMultiplayer() {
                     id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, 
                     c: myCurve, p: myParticles, d: myDamage, g: myGlow, h: myHeart, s: score, 
                     gp: pGPull, gs: pGSteal, gf: pGFood, gr: pGRes, hspd: pHrtSpd, hbri: pHrtBri,
-                    gsb: pGStealBri, gsc: pGStealCol 
+                    gsb: pGStealBri, gsc: pGStealCol, gsbr: pGStealBriRng, gscr: pGStealColRng 
                 } 
             });
             updatePlayersList(channel.presenceState()); // Garantir ranking local sempre atualizado
@@ -2081,6 +2105,12 @@ function gameTick() {
             f.x += (dx / d) * attract;
             f.y += (dy / d) * attract;
         }
+        
+        // NOVO G-COMBAT 2.2: DRENO DE ESFERA (CENÁRIO)
+        if (d < pDragRange && pfGStealBri > 0.0) {
+            // Sucesso do dreno dno cenário: o jogador ganha brilho ao sugar do cenário
+            myGlow = Math.min(1.2, myGlow + pfGStealBri * 0.005);
+        }
 
         if (d < catchRadius) {
             score++; document.getElementById('score').textContent = score;
@@ -2125,26 +2155,26 @@ function gameTick() {
         let hisStealCol = o.gsc || 0;
         
         let netStealBri = hisStealBri - myRes * 3.0; // Resistência protege brilho também
-        if (netStealBri > 0.0 && d < 1.5) {
+        if (netStealBri > 0.0 && d < o.gsbr || 1.5) {
             myDamage = Math.min(1.0, myDamage + netStealBri * 0.015);
             // Sou drenado pelo oponente
         }
         
         let netStealCol = hisStealCol - myRes * 3.0;
-        if (netStealCol > 0.0 && d < 1.5) {
+        if (netStealCol > 0.0 && d < o.gscr || 1.5) {
             // Perda de cor (saturação acumulada em pDamage ou decaimento direto)
             myDamage = Math.min(1.0, myDamage + netStealCol * 0.02);
         }
 
         // MEU ATAQUE VAMPÍRICO (EU RECEBO O QUE SUGO DELE)
         let myNetStealBri = pGStealBri - (o.gr || 0) * 3.0;
-        if (myNetStealBri > 0.0 && d < 1.5) {
+        if (myNetStealBri > 0.0 && d < pGStealBriRng) {
             myGlow = Math.min(1.2, myGlow + myNetStealBri * pGRecvBri * 0.1); 
             // Eu ganho brilho real sugando dele!
         }
         
-        let myNetStealCol = pGStealCol - (o.gr || 0) * 3.0;
-        if (myNetStealCol > 0.0 && d < 1.5) {
+        let myNetStealCol = myNetStealCol = pGStealCol - (o.gr || 0) * 3.0;
+        if (myNetStealCol > 0.0 && d < pGStealColRng) {
             pSatBase = Math.min(2.5, pSatBase + myNetStealCol * pGRecvCol * 0.05);
         }
 

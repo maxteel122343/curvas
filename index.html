@@ -712,6 +712,12 @@
   
   uniform float otherHeart[50]; // PONTOS VITAIS INIMIGOS
   
+  float sdSegment( in vec2 p, in vec2 a, in vec2 b ) {
+      vec2 pa = p-a, ba = b-a;
+      float h = clamp( dot(pa,ba)/(dot(ba,ba)+0.0001), 0.0, 1.0 );
+      return length( pa - ba*h );
+  }
+
   float proceduralHash1(float n) { return fract(sin(n) * 43758.5453); }
   vec2 proceduralHash2(float n) { return fract(sin(vec2(n, n + 1.5)) * vec2(43758.5453, 23421.6321)); }
 
@@ -1246,6 +1252,13 @@
         if (distToHeart < 0.07) heartGlow = (0.04 / (d + 0.001)) * (0.5 + 0.5 * sin(time * 10.0));
 
         outColor += getSpirographColor(t, i, localSat) * ((pRes / (d + 0.001)) * localBri + heartGlow);
+        
+        // A ASSINATURA DE MOVIMENTO VETORIAL (ECO DE VIRADA / RASTRO POLLOCK)
+        if (pTai > 0.1) {
+            vec2 ecoOffset = pVel * pTai * 30.0; // Puxão visual pro passado
+            float dEco = sdSegment(uv, pos, pos - ecoOffset);
+            outColor += getSpirographColor(t, i, localSat) * (pRes / (dEco + 0.001)) * (localBri * 0.35);
+        }
     }
 
     // 3. Render Other Players
@@ -1279,6 +1292,13 @@
             if (distToOHeart < 0.07) oHeartGlow = (0.03 / (d + 0.001)) * (0.5 + 0.5 * sin(time * 10.0 + float(k)));
 
             outColor += getSpirographColor(t + float(k), i, oSat) * ((0.002 / (d + 0.001)) * oBri + oHeartGlow);
+
+            // ASSINATURA DE VOO INIMIGO
+            if (pTai > 0.1) {
+                vec2 ecoOffsetO = oVel * pTai * 30.0; 
+                float dEcoO = sdSegment(uv, pos, pos + ecoOffsetO);
+                outColor += getSpirographColor(t + float(k), i, oSat) * (0.002 / (dEcoO + 0.001)) * (oBri * 0.35);
+            }
         }
     }
 

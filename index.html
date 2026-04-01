@@ -1854,7 +1854,7 @@ function initMultiplayer() {
             channel.send({ 
                 type: 'broadcast', 
                 event: 'pos', 
-                payload: { id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, c: myCurve, p: myParticles, d: myDamage, g: myGlow, h: myHeart, s: score } 
+                payload: { id: myName, x: playerX, y: playerY, vx: playerVelX, vy: playerVelY, c: myCurve, p: myParticles, d: myDamage, g: myGlow, h: myHeart, s: score, gp: pGPull, gs: pGSteal, gf: pGFood, gr: pGRes } 
             });
             updatePlayersList(channel.presenceState()); // Garantir ranking local sempre atualizado
         }
@@ -1930,14 +1930,13 @@ function gameTick() {
     document.getElementById('dash-fill').style.width = dashEnergy + "%";
 
     let turnSpeed = Math.max(0.04 * speedBoost - (myParticles / MAX_PARTICLES) * 0.025, 0.005);
+    
+    // As coordenadas brutas antes da física gravitacional
     playerX += (mouseX * 2.0) * turnSpeed;
     playerY += (mouseY * 2.0) * turnSpeed;
-    playerX = Math.max(-MAP_SIZE, Math.min(MAP_SIZE, playerX));
-    playerY = Math.max(-MAP_SIZE, Math.min(MAP_SIZE, playerY));
-    playerVelX = playerX - lastX;
-    playerVelY = playerY - lastY;
     
-    let catchRadius = 0.05 + (myParticles / MAX_PARTICLES) * 0.12;
+    // G-COMBAT: Alcance de Vácuo aumentado pelo "Ralo Cósmico" (pGFood)
+    let catchRadius = 0.05 + (myParticles / MAX_PARTICLES) * 0.12 + (pGFood * 0.05);
     foods.forEach((f, idx) => {
         let d = Math.sqrt((playerX - f.x)**2 + (playerY - f.y)**2);
         if (d < catchRadius) {
@@ -1952,8 +1951,32 @@ function gameTick() {
 
     for (let id in others) {
         let o = others[id];
-        let d = Math.sqrt((playerX - o.x)**2 + (playerY - o.y)**2);
+        let d = Math.max(0.01, Math.sqrt((playerX - o.x)**2 + (playerY - o.y)**2));
         
+        // G-COMBAT 1: A LEI DO ARRASTO RELATIVÍSTICO (Puxão)
+        let hisPull = o.gp || 0;
+        let myRes = pGRes;
+        let netPull = hisPull - myRes * 5.0; // Ele precisa de puxão forte pra quebrar minha inércia
+        if (netPull > 0.0 && d < 2.5) {
+            // O jogador é arrastado pro Buraco Negro inimigo na marra (F=M1*M2/D²)
+            let force = (netPull * 0.015) / (d + 0.1);
+            playerX += ((o.x - playerX) / d) * force;
+            playerY += ((o.y - playerY) / d) * force;
+            // Se for puxado muito forte, o brilho falha
+            myDamage = Math.min(1.0, myDamage + 0.005);
+        }
+        
+        // G-COMBAT 2: O LADRÃO DE FÓTONS (Sanguessuga Assintótica a Distância)
+        let hisSteal = o.gs || 0;
+        let netSteal = hisSteal - myRes * 2.0;
+        if (netSteal > 0.0 && d < 1.0) {
+            // Lógica vampiresca sem contato: o oponente debulha sua massa sem encostar
+            if (myParticles > 10 && Math.random() < 0.2) {
+                myParticles -= netSteal * 0.5; // Roubo passivo
+                myDamage = Math.min(1.0, myDamage + 0.02); // Fraqueza
+            }
+        }
+
         // HEART DETECTION: Se eu acertar o centro dele no coração luminoso
         let oHeartPos = getHeartWorldPos(o);
         let distToHeart = Math.sqrt((playerX - oHeartPos.x)**2 + (playerY - oHeartPos.y)**2);
@@ -1976,6 +1999,12 @@ function gameTick() {
             isDashing = false; dashEnergy = Math.max(0, dashEnergy - 30);
         }
     }
+
+    // LIMITADORES DA ARENA BASE
+    playerX = Math.max(-MAP_SIZE, Math.min(MAP_SIZE, playerX));
+    playerY = Math.max(-MAP_SIZE, Math.min(MAP_SIZE, playerY));
+    playerVelX = playerX - lastX;
+    playerVelY = playerY - lastY;
 
     // 9 ESCALAS DE EVOLUÇÃO MATEMÁTICA
     const m = myParticles;

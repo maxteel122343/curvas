@@ -13,6 +13,9 @@
     --secondary: #7000ff;
     --accent: #ff00ea;
   }
+  * {
+    box-sizing: border-box;
+  }
   body {
     margin: 0;
     overflow: hidden;
@@ -138,10 +141,15 @@
     border-top-left-radius: 20px !important;
     border-bottom-left-radius: 20px !important;
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    pointer-events: none !important;
+  }
+  #creative-lab.active {
     pointer-events: auto !important;
+    transform: translateY(-50%) translateX(0) !important;
   }
   #creative-lab.minimized {
-    transform: translateY(-50%) translateX(240px) !important; /* Deixa 40px visíveis */
+    transform: translateY(-50%) translateX(240px) !important;
+    pointer-events: auto !important;
   }
   .lab-toggle-btn {
     position: absolute;
@@ -414,15 +422,49 @@
   @media (max-width: 768px) {
       #score { font-size: 32px; }
       #minimap-container { width: 80px; height: 80px; bottom: 15px; left: 15px; }
-      #geo-hud { top: 10px; left: 10px; min-width: 120px; padding: 5px 8px; font-size: 10px; }
+      #geo-hud { 
+        width: 160px;
+        top: 10px; 
+        left: 0px; 
+        padding: 10px; 
+        font-size: 10px;
+        max-height: 50vh;
+      }
+      #creative-lab {
+        width: 100% !important;
+        top: auto !important;
+        bottom: 0 !important;
+        right: 0 !important;
+        left: 0 !important;
+        transform: translateY(100%) !important;
+        border-radius: 20px 20px 0 0 !important;
+        border: 1px solid rgba(0, 242, 255, 0.3) !important;
+        max-height: 80vh !important;
+      }
+      #creative-lab.active {
+        transform: translateY(0) !important;
+      }
+      #creative-lab.minimized {
+        transform: translateY(100%) !important;
+      }
+      .lab-toggle-btn {
+        display: none;
+      }
+      .attribute-bar {
+        bottom: 10px;
+        gap: 8px;
+      }
+      .attr-sphere {
+        width: 30px;
+        height: 30px;
+      }
   }
 
-  /* GEOMETRY HUD */
   #geo-hud {
-    position: absolute;
+    position: fixed;
     top: 20px;
-    left: 0px; /* Alinhado para minimizar */
-    background: rgba(0, 0, 0, 0.4);
+    left: 0px; 
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(15px);
     border: 1px solid rgba(0, 242, 255, 0.2);
     padding: 15px;
@@ -430,14 +472,18 @@
     border-bottom-right-radius: 20px;
     color: #fff;
     font-family: 'Outfit', sans-serif;
-    width: 280px;
-    z-index: 100;
+    width: 250px;
+    z-index: 2000;
     pointer-events: auto;
     box-shadow: 0 10px 40px rgba(0,0,0,0.6);
     overflow-y: auto;
     max-height: 80vh;
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
   }
+  #geo-hud::-webkit-scrollbar { width: 4px; }
+  #geo-hud::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 2px; }
   #geo-hud.minimized {
     transform: translateX(-230px); /* Esconde mas deixa aba clara */
   }
@@ -1594,23 +1640,13 @@
     if (uBgMode == 0) {
         // MODO 0: LABORATÓRIO (Nébula Médica Suave)
         outColor += vec3(0.02, 0.05, 0.08) * (0.5 + 0.5 * sin(gridUv.x * 0.2 + t * 0.1));
-        // Estrelas de fundo sutis (pontos, não quadrados)
-        float star = fract(sin(dot(floor(gridUv * 15.0), vec2(12.989, 78.23))) * 43758.54);
-        if(star > 0.992) outColor += vec3(0.3, 0.5, 0.6) * (0.5 + 0.5 * sin(t + star * 10.0));
+        // Estrelas removidas para evitar "quadrados" no cenário
     } else {
         // MODO 1: COSMOS (Espaço Profundo com Nebulosa e Esferas Brilhantes)
-        // Nebulosa de fundo baratíssima (apenas seno suave)
         outColor += vec3(0.02, 0.0, 0.05) * (0.5 + 0.5 * sin(gridUv.x * 0.5 + t * 0.2));
         outColor += vec3(0.0, 0.03, 0.04) * (0.5 + 0.5 * cos(gridUv.y * 0.6 - t * 0.1));
         
-        // Estrelas cintilantes intensas (PONTUAIS, NÃO QUADRADAS)
-        vec2 starG = gridUv * 8.0;
-        float star = fract(sin(dot(floor(starG), vec2(12.98, 78.23))) * 43758.54);
-        if(star > 0.97) {
-            float blink = 0.5 + 0.5 * sin(t * 3.0 + star * 100.0);
-            float dStar = length(fract(starG) - 0.5);
-            outColor += vec3(0.5, 0.8, 1.0) * (0.08 / (dStar + 0.05)) * blink;
-        }
+        // Estrelas removidas para visual limpo e profissional
     }
 
     // 1. Render Food/Energy Spheres (with DRAIN/ATTR logic)

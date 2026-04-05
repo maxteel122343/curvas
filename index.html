@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Desenvolvido por Miller -->
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
@@ -123,46 +124,51 @@
   
   #creative-lab {
     position: fixed !important;
-    top: 10px !important; 
-    right: 10px !important;
-    left: auto !important;
-    transform: none !important;
-    background: rgba(0,0,0,0.1) !important; 
-    backdrop-filter: blur(2px) !important;
-    padding: 15px !important;
+    top: 50%;
+    right: 0px;
+    transform: translateY(-50%) !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(15px) !important;
+    padding: 20px !important;
     z-index: 3000 !important;
-    display: block !important;
-    width: 260px !important; 
-    max-height: 95vh !important; 
+    width: 280px !important;
+    max-height: 90vh !important;
     overflow-y: auto !important;
-    border: none !important;
-    box-shadow: none !important;
+    border-left: 1px solid rgba(0, 242, 255, 0.2) !important;
+    border-top-left-radius: 20px !important;
+    border-bottom-left-radius: 20px !important;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
     pointer-events: auto !important;
-    transition: max-height 0.3s ease, padding 0.3s ease;
   }
   #creative-lab.minimized {
-    max-height: 50px !important;
-    overflow: hidden !important;
-    padding-bottom: 0 !important;
+    transform: translateY(-50%) translateX(240px) !important; /* Deixa 40px visíveis */
   }
   .lab-toggle-btn {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(255,255,255,0.1);
+    top: 50%;
+    left: -35px; /* Aba maior para visibilidade total */
+    transform: translateY(-50%);
+    background: var(--primary);
     border: none;
-    color: white;
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
+    color: #000;
+    width: 35px;
+    height: 100px;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 20px;
+    font-weight: 900;
     z-index: 3010;
+    box-shadow: -10px 0 20px rgba(0, 242, 255, 0.4);
+    pointer-events: auto !important;
   }
-  .lab-toggle-btn:hover { background: rgba(255,255,255,0.2); }
+  .lab-toggle-btn:hover { background: rgba(0, 242, 255, 0.4); }
+  #creative-lab.minimized .lab-toggle-btn {
+    left: -35px; /* Ajuste para melhor clique quando minimizado */
+  }
   #creative-lab.active { display: block !important; }
   .creative-lab h2 { margin-top: 0; font-size: 1.2rem; text-transform: uppercase; color: var(--primary); }
   .alchemy-row {
@@ -258,17 +264,17 @@
     text-align: center;
   }
   #score {
-    font-size: 56px;
-    font-weight: 800;
+    font-size: 38px;
+    font-weight: 900;
     margin: 0;
-    text-shadow: 0 0 20px var(--primary);
+    color: #fff;
+    text-shadow: 0 0 15px var(--primary), 0 0 5px #fff;
+    background: radial-gradient(circle, rgba(0,242,255,0.2) 0%, transparent 70%);
+    padding: 10px 20px;
+    border-radius: 50%;
   }
   #game-msg {
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-top: 5px;
-    color: var(--primary);
+    display: none;
   }
   .players-list {
     position: absolute;
@@ -415,42 +421,177 @@
   #geo-hud {
     position: absolute;
     top: 20px;
-    left: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 242, 255, 0.3);
-    padding: 12px 18px;
-    border-radius: 14px;
+    left: 0px; /* Alinhado para minimizar */
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    padding: 15px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
     color: #fff;
     font-family: 'Outfit', sans-serif;
-    min-width: 200px;
+    width: 280px;
     z-index: 100;
-    pointer-events: none;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    pointer-events: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    overflow-y: auto;
+    max-height: 80vh;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #geo-hud.minimized {
+    transform: translateX(-230px); /* Esconde mas deixa aba clara */
+  }
+  .hud-toggle-btn {
+    position: absolute;
+    top: 50%;
+    right: -35px;
+    transform: translateY(-50%);
+    background: var(--primary);
+    border: none;
+    color: #000;
+    width: 35px;
+    height: 100px;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 900;
+    z-index: 110;
+    box-shadow: 10px 0 20px rgba(0, 242, 255, 0.4);
+    pointer-events: auto !important;
   }
   #geo-hud h4 {
-    margin: 0 0 8px 0;
-    font-size: 11px;
+    margin: 0 0 12px 0;
+    font-size: 10px;
     color: var(--primary);
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    border-bottom: 1px solid rgba(0,242,255,0.2);
-    padding-bottom: 4px;
+    letter-spacing: 2px;
+    border-bottom: 1px solid rgba(0,242,255,0.1);
+    padding-bottom: 6px;
+    text-align: center;
+  }
+  .hud-section {
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .hud-section-title {
+    font-size: 9px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
   }
   .geo-row {
     display: flex;
     justify-content: space-between;
-    font-size: 13px;
-    margin-bottom: 4px;
-    font-weight: 500;
+    font-size: 11px;
+    margin-bottom: 3px;
+    color: rgba(255,255,255,0.8);
   }
   .geo-val {
     font-weight: 800;
     color: var(--primary);
-    text-shadow: 0 0 8px rgba(0,242,255,0.4);
+    text-shadow: 0 0 5px rgba(0,242,255,0.3);
   }
+  .geo-val.param-val { color: #ffeb3b; } /* Cor amarela para parametros editaveis */
   .status-healthy { color: #00ffaa; }
   .status-injured { color: #ff3366; }
+  /* ATTRIBUTE BAR */
+  .attribute-bar {
+    position: absolute;
+    bottom: 40px; /* Mais baixo para não atrapalhar */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px; /* Menor espaço */
+    z-index: 1000;
+    pointer-events: none;
+    transition: opacity 0.5s;
+  }
+  .attr-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Removido o grayscale pesado para manter o brilho "idêntico ao cenário" */
+    filter: brightness(0.7) contrast(1.2);
+  }
+  .attr-slot.unlocked {
+    filter: brightness(1.2) contrast(1.1);
+  }
+  .attr-sphere {
+    width: 38px; /* Reduzido drasticamente para estética limpa */
+    height: 38px;
+    border-radius: 50%;
+    box-shadow: 0 0 15px currentColor, inset 0 0 10px rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.4);
+    position: relative;
+    background-size: cover;
+    animation: attrPulse 4s infinite ease-in-out;
+  }
+  @keyframes attrPulse {
+    0%, 100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 5px currentColor); }
+    50% { transform: scale(1.1); filter: brightness(1.4) drop-shadow(0 0 15px currentColor); }
+  }
+  .attr-slot:hover .attr-sphere {
+    transform: scale(1.25);
+    filter: brightness(1.5);
+    box-shadow: 0 0 40px currentColor, inset 0 0 20px rgba(255,255,255,0.8);
+  }
+  .attr-label {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    background: #fff;
+    color: #000;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 900;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    border: 1.5px solid #000;
+  }
+  .attr-level {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--primary);
+    color: #000;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    border-radius: 8px;
+    font-size: 8px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  }
+  .attr-name {
+    display: none;
+  }
+  .attr-active {
+    transform: scale(1.3) translateY(-10px);
+  }
+  .attr-active .attr-sphere {
+    box-shadow: 0 0 40px currentColor;
+    border-color: #fff;
+    animation: skill-pulse 0.5s infinite alternate;
+  }
+  @keyframes skill-pulse {
+    from { filter: brightness(1); }
+    to { filter: brightness(2) saturate(2); }
+  }
 </style>
 </head>
 <body>
@@ -462,8 +603,8 @@
   </div>
 
   <div style="position: absolute; top: 25%; left: 8%; text-align: left; width: 400px; pointer-events: none;">
-    <p style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 3px;">Seu Avatar Numérico</p>
-    <h2 id="preview-curve-name" style="color: #00ffaa; margin: 0; font-size: 1.5rem; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 255, 170, 0.4); pointer-events: auto; display: block;">Sorteando Matemática...</h2>
+    <h2 id="preview-curve-name" style="color: #00ffaa; margin: 0; font-size: 1.3rem; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 255, 170, 0.4); pointer-events: auto; display: block;">Sincronizando Matriz...</h2>
+    <p style="font-size: 9px; color: rgba(255,255,255,0.3); margin-top: 5px; text-transform: uppercase;">Compilando Genoma Geométrico (Pode levar alguns segundos)</p>
     <div style="margin-top: 15px;">
        <button onclick="randomizeSpawnCurve()" style="pointer-events: auto; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,51,102,0.5); color: #ff3366; padding: 8px 20px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(5px);" onmouseover="this.style.background='rgba(255,51,102,0.2)'; this.style.borderColor='#ff3366'; this.style.transform='scale(1.05)';" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.borderColor='rgba(255,51,102,0.5)'; this.style.transform='scale(1)';">Trocar Genoma</button>
     </div>
@@ -475,11 +616,45 @@
       <button class="start-btn" onclick="startGame()" style="margin: 0; padding: 12px 35px; font-size: 1.1rem; border-radius: 40px; box-shadow: 0 0 20px rgba(0,242,255,0.4); width: auto;">ENTRAR</button>
     </div>
     <span style="font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-transform: uppercase; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 10px;">Interaja com a Matriz usando o Mouse</span>
+    </div>
+</div>
+
+<!-- BARRA DE ATRIBUTOS (G-COMBAT SKILLS) - FORA DO OVERLAY -->
+<div id="attribute-bar" class="attribute-bar" style="display: none;">
+  <div class="attr-slot" id="attr-0">
+    <div class="attr-sphere" style="background: radial-gradient(circle at 35% 35%, #fff 0%, #ffeb3b 30%, #664400 100%); color: #ffeb3b;"></div>
+    <div class="attr-label">1</div>
+    <div class="attr-level" id="lvl-0">0</div>
+    <div class="attr-name">Dash</div>
+  </div>
+  <div class="attr-slot" id="attr-1">
+    <div class="attr-sphere" style="background: radial-gradient(circle at 35% 35%, #fff 0%, #00ffaa 30%, #004d20 100%); color: #00ffaa;"></div>
+    <div class="attr-label">2</div>
+    <div class="attr-level" id="lvl-1">0</div>
+    <div class="attr-name">Dreno</div>
+  </div>
+  <div class="attr-slot" id="attr-2">
+    <div class="attr-sphere" style="background: radial-gradient(circle at 35% 35%, #fff 0%, #ff3366 30%, #600 100%); color: #ff3366;"></div>
+    <div class="attr-label">3</div>
+    <div class="attr-level" id="lvl-2">0</div>
+    <div class="attr-name">Atração</div>
+  </div>
+  <div class="attr-slot" id="attr-3">
+    <div class="attr-sphere" style="background: radial-gradient(circle at 35% 35%, #fff 0%, #00d9e6 30%, #004d40 100%); color: #00d9e6;"></div>
+    <div class="attr-label">4</div>
+    <div class="attr-level" id="lvl-3">0</div>
+    <div class="attr-name">Repelir</div>
+  </div>
+  <div class="attr-slot" id="attr-4">
+    <div class="attr-sphere" style="background: radial-gradient(circle at 35% 35%, #fff 0%, #d400ff 30%, #4a004d 100%); color: #d400ff;"></div>
+    <div class="attr-label">5</div>
+    <div class="attr-level" id="lvl-4">0</div>
+    <div class="attr-name">Doar</div>
   </div>
 </div>
 
-<div id="creative-lab" class="creative-lab">
-  <button class="lab-toggle-btn" onclick="toggleMinimizeLab()" title="Minimizar/Expandir Editor">_</button>
+<div id="creative-lab" class="creative-lab minimized">
+  <button class="lab-toggle-btn" onclick="toggleMinimizeLab()" title="Expandir Editor">◀</button>
   <div class="prompt-row">
     <input type="text" id="cosmic-prompt" class="prompt-input" placeholder="Peça algo à IA (ex: 'Algo calmo', 'Caótico')...">
     <button class="prompt-btn" onclick="processCosmicPrompt()">IA</button>
@@ -712,16 +887,45 @@
 <canvas></canvas>
 
 <div id="ui-layer">
-  <div id="geo-hud" onclick="toggleSettings()" style="cursor:pointer; pointer-events:auto;">
-    <h4>LABORATÓRIO GEOMÉTRICO (CLIQUE PARA EDITAR)</h4>
-    <div class="geo-row">CLASSE: <span id="hud-class" class="geo-val">-</span></div>
-    <div class="geo-row">ID CURVA: <span id="hud-curve" class="geo-val">1</span></div>
-    <div class="geo-row">DNA (X, Y, Z): <span id="hud-xyz" class="geo-val">1.0, 1.0, 1.0</span></div>
-    <div class="geo-row">MASSA: <span id="hud-mass" class="geo-val">10</span></div>
-    <div class="geo-row">ESTADO: <span id="hud-status" class="geo-val status-healthy">SAUDÁVEL</span></div>
-    <div class="geo-row">SATURAÇÃO: <span id="hud-sat" class="geo-val">0</span></div>
-    <div class="geo-row">BRILHO: <span id="hud-bri" class="geo-val">0</span></div>
-    <div class="geo-row">SPIN: <span id="hud-spin" class="geo-val">1.0</span></div>
+  <div id="geo-hud" class="minimized" style="pointer-events:auto;">
+    <button class="hud-toggle-btn" onclick="toggleMinimizeHUD()">▶</button>
+    <h4>PERFIL DA MATRIZ CÓSMICA</h4>
+    
+    <div class="hud-section">
+      <div class="hud-section-title">Identidade do Piloto</div>
+      <div class="geo-row">PILOTO: <span id="hud-user" class="geo-val">-</span></div>
+      <div class="geo-row">ESTADO: <span id="hud-status" class="geo-val status-healthy">SAUDÁVEL</span></div>
+      <div class="geo-row">MASSA ATUAL: <span id="hud-mass" class="geo-val">10</span></div>
+    </div>
+
+    <div class="hud-section">
+      <div class="hud-section-title">Análise Geométrica (DNA)</div>
+      <div class="geo-row">CLASSE: <span id="hud-class" class="geo-val">PRIMORDIAL</span></div>
+      <div class="geo-row">NOME CIENTÍFICO: <span id="hud-sci-name" class="geo-val">-</span></div>
+      <div class="geo-row">ID: <span id="hud-curve" class="geo-val">1</span></div>
+    </div>
+
+    <div class="hud-section">
+      <div class="hud-section-title">Parâmetros de Geração</div>
+      <div class="geo-row">X: <span id="hud-val-x" class="geo-val param-val">1.00</span></div>
+      <div class="geo-row">Y: <span id="hud-val-y" class="geo-val param-val">1.00</span></div>
+      <div class="geo-row">Z: <span id="hud-val-z" class="geo-val param-val">1.00</span></div>
+      <div class="geo-row">W (CHAOS): <span id="hud-val-w" class="geo-val param-val">1.00</span></div>
+      <div class="geo-row">K (HARM.): <span id="hud-val-k" class="geo-val param-val">1.00</span></div>
+      <div class="geo-row">ENTROPIA (JIT): <span id="hud-val-jit" class="geo-val param-val">0.00</span></div>
+      <div class="geo-row">TORÇÃO (TWI): <span id="hud-val-twi" class="geo-val param-val">0.00</span></div>
+      <div class="geo-row">SKEW (ASSIM.): <span id="hud-val-ske" class="geo-val param-val">1.00</span></div>
+      <div class="geo-row">ESTRUTURA (DEN): <span id="hud-val-den" class="geo-val param-val">1.00</span></div>
+      <div class="geo-row">PERSIST. (TAI): <span id="hud-val-tai" class="geo-val param-val">1.50</span></div>
+      <div class="geo-row">AGUDEZA (POW): <span id="hud-val-pow" class="geo-val param-val">0.50</span></div>
+    </div>
+
+    <div class="hud-section" style="border:none;">
+      <div class="hud-section-title">Sensores de Campo</div>
+      <div class="geo-row">SATURAÇÃO: <span id="hud-sat" class="geo-val">0</span></div>
+      <div class="geo-row">BRILHO: <span id="hud-bri" class="geo-val">0</span></div>
+      <div class="geo-row">SPIN: <span id="hud-spin" class="geo-val">1.0</span></div>
+    </div>
   </div>
   <div class="hud-top">
     <div id="score">0</div>
@@ -738,7 +942,7 @@
   <div id="labels-container"></div>
   <div id="fps">FPS: 0</div>
   
-  <div style="position: absolute; bottom: 20px; left: 20px; display: flex; gap: 10px;">
+  <div style="position: absolute; bottom: 20px; left: 20px; display: flex; gap: 10px; pointer-events: auto;">
     <button onclick="toggleBackground()" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(0,242,255,0.3); color: var(--primary); padding: 5px 15px; border-radius: 20px; cursor: pointer; backdrop-filter: blur(5px); font-family: 'Outfit'; font-size: 10px; text-transform: uppercase;">Mudar Fundo (Ativo: Lab)</button>
   </div>
 </div>
@@ -853,70 +1057,92 @@
   vec2 getCurvePosA(int type, float t, float i, float pCount, vec3 params) {
     float phase = i * PI * 0.01;
     vec2 pos = vec2(0.0);
-    if (type == 0) pos = vec2(sin(t*params.x+phase)*cos(t*params.y+phase), cos(t*params.z+phase)*sin(t*params.y+phase))*(0.5+0.3*sin(t+phase));
-    else if (type == 1) { float r=0.1+0.4*(i/max(pCount,1.0)); pos=vec2(r*sin(t*params.x+i*0.1), r*cos(t*params.y+i*0.1)); }
-    else if (type == 2) { float petals=5.0+3.0*sin(t*0.1); float r=0.4*(0.5+0.5*sin(phase*5.0+t)); pos=vec2(r*sin(t*params.x+i*petals*0.01)*cos(t*params.z), r*cos(t*params.y+i*petals*0.01)*sin(t*params.z)); }
-    else if (type == 3) { float r=0.4*(0.5+0.5*sin(i*0.1+t)); float a=t*0.5+i*PI*2.0/max(pCount,1.0); pos=vec2(r*sin(a*params.x)*cos(a*params.y), r*sin(a*params.z)*sin(a*params.y)); }
-    else if (type == 4) { pos=vec2((i/max(pCount,1.0))*1.5-0.75, 0.4*sin(t*params.x+10.0*(i/max(pCount,1.0))*params.y)*cos(t*params.z)); }
-    else if (type == 5) { float orbitSpeed=params.x*0.5; float orbitRadius=0.2+0.15*sin(i*0.1); pos=vec2(0.2*sin(t*params.y)+orbitRadius*cos(t*orbitSpeed+i*0.2), 0.2*cos(t*params.z)+orbitRadius*sin(t*orbitSpeed+i*0.2)); }
-    else if (type == 6) { float a=0.5*(i/max(pCount,1.0)); float r=0.3*(sin(t*0.1)*0.5+0.5); pos=vec2(r*sin(a*PI*params.x+t)*cos(a*PI*3.0*params.y+t), r*sin(a*PI*params.z+t)*sin(a*PI*2.0*params.y+t)); }
-    else if (type == 7) { float a=i/max(pCount,1.0)*PI*2.0; float z=(i/max(pCount,1.0))*2.0-1.0; float radius=0.3+0.1*sin(t*params.x+z*5.0); pos=vec2(radius*sin(a*params.y+t*2.0), z*cos(t*params.z)+radius*cos(a*params.y+t*2.0)*sin(t)); }
-    else if (type == 8) { float angle=i/max(pCount,1.0)*PI*10.0+t; float radius=0.05+0.3*(i/max(pCount,1.0)); pos=vec2(radius*cos(angle*params.x)*sin(t*params.y), radius*sin(angle*params.z)*cos(t*params.y)); }
-    else if (type == 9) { float a=(i/max(pCount,1.0)-0.5)*0.6; pos=vec2(a, (0.2+0.15*sin(t*0.2))*sin(t*params.x+a*10.0*params.y)*cos(t*params.z+a*8.0)); }
-    else if (type == 10) { float a=(i/max(pCount,10.0))*2.0-1.0; pos=vec2(a*0.7, sin(t*params.x+a*5.0*params.y)*0.2*params.z); }
-    else if (type == 11) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.4*(0.8+0.2*abs(cos(a*params.x+t))); pos=vec2(r*sin(a*params.y+t), r*cos(a*params.z+t)); }
-    else if (type == 12) { float a=i/max(pCount,1.0)*PI*10.0+t; float z=sin(a*0.3*params.z); pos=vec2((0.3+0.1*z)*cos(a*params.x), (0.1*z+0.2)*sin(a*params.y)); }
-    else if (type == 13) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=1.0/(1.5+0.8*sin(a*params.x+t)); pos=vec2(r*cos(a*params.y), r*sin(a*params.z)); }
-    else if (type == 14) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.3*pow(abs(sin(a*params.x+t)), pPow); pos=vec2(r*sin(a*params.y+t), r*cos(a*params.z+t)); }
-    else if (type == 15) { float a=i/max(pCount,1.0)*PI*2.0; vec2 p=vec2(0.4*cos(a*params.x+floor(t*2.0)), 0.4*sin(a*params.y+floor(t*2.0))); pos=floor(p*pFlo)/pFlo; }
-    else if (type == 16) { float a=i/max(pCount,1.0)*PI*2.0; float r=pow(pow(abs(cos(params.x*a/4.0)),params.y)+pow(abs(sin(params.x*a/4.0)),params.z),-1.0/pPow); pos=vec2(r*cos(a+t), r*sin(a+t))*0.3; }
-    else if (type == 17) { float a=i/max(pCount,1.0)*PI*4.0+t; float r=exp(cos(a))-2.0*cos(4.0*a)+pow(sin(a/12.0),5.0); pos=vec2(r*sin(a), r*cos(a))*0.1*params.x; }
-    else if (type == 18) { float a=(i/max(pCount,1.0)-0.5)*PI; float r=0.5*sqrt(abs(cos(2.0*a*params.x))); pos=vec2(r*cos(a+t), r*sin(a+t)*params.y); }
-    else if (type == 19) { float a=i/max(pCount,1.0)*PI*10.0+t; float R=0.5,rr=0.2,d=0.15*params.z; pos=vec2((R-rr)*cos(a)+d*cos((R-rr)*a/rr),(R-rr)*sin(a)-d*sin((R-rr)*a/rr)); }
-    else if (type == 20) { float a=i/max(pCount,1.0)*PI*15.0+t; float r=0.05*exp(0.15*a*params.x); pos=vec2(r*cos(a), r*sin(a))/(1.0+r*2.0); }
-    else if (type == 21) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.3*(1.0-sin(a+t))*params.x; pos=vec2(r*cos(a), r*sin(a)); }
-    else if (type == 22) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.3+0.1*sign(sin(a*params.x)); pos=vec2(r*cos(a), r*sin(a)); }
-    else if (type == 23) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.1+0.3*(abs(sin(t))>0.5?1.0:0.5); pos=vec2(r*cos(a*params.x+t), r*sin(a*params.y+t)); }
-    else if (type == 24) { float a=i/max(pCount,1.0)*PI*2.0; float R=0.3,rr=0.1; pos=vec2((R+rr*cos(a*params.x))*cos(a+t*0.5), rr*sin(a*params.y)); }
-    else if (type == 25) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(sin(a)+2.0*sin(2.0*a), cos(a)-2.0*cos(2.0*a))*0.1*params.x; }
-    else if (type == 26) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(pow(cos(a*params.x),3.0), pow(sin(a*params.y),3.0))*0.4; }
-    else if (type == 27) { float idVal=i+floor(t*10.0); pos=(proceduralHash2(idVal)-0.5)*0.8*params.x; }
-    else if (type == 28) { float a=(i/max(pCount,1.0))*2.0-1.0; pos=vec2(a*0.8, 0.2*sin(a*10.0*params.x+t)*cos(a*5.0*params.y)); }
-    else if (type == 29) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=(mod(i,2.0)>0.5)?0.4:0.2; pos=vec2(r*cos(a*params.x),r*sin(a*params.y)); }
-    else if (type == 30) { float a=i/max(pCount,1.0)*PI*20.0+t; float r=0.02*a*params.x; pos=vec2(r*cos(a),r*sin(a))/(1.0+r); }
-    else if (type == 31) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.5*(1.0-0.5/(1.0+abs(sin(t)))); pos=vec2(r*cos(a*params.x),r*sin(a*params.y)); }
-    else if (type == 32) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(sin(a*params.x+t),cos(a*params.y+t))*0.4; }
-    else if (type == 33) { float a=i/max(pCount,1.0); pos=vec2(floor(sin(a*10.0*params.x)*10.0)/10.0, floor(cos(a*10.0*params.y)*10.0)/10.0)*0.4; }
-    else if (type == 34) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.3*(0.8+0.2*cos(a*5.0*params.x)); pos=vec2(r*sin(a),r*cos(a)); }
-    else if (type == 35) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(cos(a)*cos(a*params.x),sin(a)*sin(a*params.y))*0.4; }
-    else if (type == 36) { float a=sqrt(i+t*10.0)*params.x; float r=0.05*a; pos=vec2(r*cos(a),r*sin(a))/(1.0+r); }
-    else if (type == 37) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.3*(1.0+0.1*sin(a*3.0*params.x)*sign(sin(a*9.0))); pos=vec2(r*cos(a+t),r*sin(a+t)); }
-    else if (type == 38) { float a=i/max(pCount,1.0); pos=vec2((proceduralHash1(i)-0.5)*0.8, fract(a*5.0+t*params.x)*0.8-0.4); }
-    else if (type == 39) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(0.3*cos(a+t)+0.1*cos(a*params.x+t*5.0), 0.3*sin(a+t)+0.1*sin(a*params.y+t*5.0)); }
-    else if (type == 40) { float a=(i/max(pCount,1.0)-0.5)*2.0; pos=vec2(a,0.1/(a*params.x+0.001+sin(t)))*0.1; }
-    else if (type == 41) { float a=i/max(pCount,1.0)*PI*2.0; float d=abs(sin(a*params.x+t))*abs(cos(a*params.y-t)); pos=vec2(d*cos(a),d*sin(a))*0.5; }
-    else if (type == 42) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(cos(a)*params.x,sin(a)*params.y)*(0.3+0.1*cos(t+a*params.z)); }
-    else if (type == 43) { float a=i/max(pCount,1.0)*PI*2.0; float r=floor(a*params.x)/params.x; pos=vec2(0.3*cos(a+t),0.3*sin(a+t))*(0.8+0.2*sin(r*10.0)); }
-    else if (type == 44) { float a=i/max(pCount,1.0)*PI*2.0+t; float a2=floor(a*params.x)/params.x; pos=vec2(0.4*cos(a2),0.4*sin(a2)); }
-    else if (type == 45) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.1+0.4*fract(t*params.x+i*0.01); pos=vec2(r*cos(a),r*sin(a)); }
-    else if (type == 46) { float a=i/max(pCount,1.0)*PI*10.0+t; float m=mod(i,3.0); float ph=m*PI*0.66; pos=vec2(0.3*cos(a+ph),0.1*sin(a+ph)+(m-1.0)*0.1); }
-    else if (type == 47) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.8*exp(-abs(sin(t*params.x))*5.0); pos=vec2(r*cos(a),r*sin(a)); }
-    else if (type == 48) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.3*(0.8+0.2*sin(a*4.0))*params.x; pos=vec2(r*cos(a*params.y),r*sin(a*params.z)); }
-    else if (type == 49) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.35*(0.8+0.2*abs(sin(a*6.0*params.x+t))); pos=vec2(r*cos(a),r*sin(a)); }
-    else if (type == 50) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.4*(1.0-sin(a))*params.x; pos=vec2(r*cos(a*params.y),r*sin(a*params.z)); }
-    else if (type == 51) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=(mod(i,2.0)==0.0)?0.3:0.1; pos=vec2(r*cos(a*params.x),r*sin(a*params.y)); }
-    else if (type == 52) { float a=i/max(pCount,1.0)*PI*6.0+t; float r=0.2+0.3*(i/max(pCount,1.0)); pos=vec2(r*cos(a),r*sin(a)*0.3*params.x); }
-    else if (type == 53) { vec2 p=vec2(i/max(pCount,1.0),fract(t*0.1)); float xv=fract(sin(dot(floor(p*20.0*params.x),vec2(12.9898,78.233)))*43758.5453); pos=(vec2(xv,fract(xv*1.5))-0.5)*0.8; }
-    else if (type == 54) { float a=(i/max(pCount,1.0))*PI*2.0; pos=vec2(0.4*cos(a+sin(t+a*params.x)),0.4*sin(a+cos(t+a*params.y))); }
-    else if (type == 55) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.3*(1.0+0.5*sin(a*12.0+t*4.0))*params.x; pos=vec2(r*cos(a),r*sin(a)); }
-    else if (type == 56) { float a=i/max(pCount,1.0)*PI*2.0; float seg=floor(params.x*12.0); float a2=floor(a*seg)/seg+t; pos=vec2(0.4*cos(a2),0.4*sin(a2)); }
-    else if (type == 57) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.4*cos(params.x*a); pos=vec2(r*cos(a),r*sin(a)); }
-    else if (type == 58) { float a=i/max(pCount,1.0); pos=vec2(fract(a*10.0+t)*0.8-0.4,(proceduralHash1(i)-0.5)*0.8); }
-    else if (type == 59) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.3+0.1*sin(t+a*params.x); pos=vec2(r*cos(a*params.y+t),r*sin(a*params.z+t)); }
-    else if (type == 60) { float a=i/max(pCount,1.0)*PI*10.0+t; pos=vec2(sin(a*params.x)+sin(a*2.0),cos(a*params.y)+cos(a*2.0))*0.15; }
-    else if (type == 61) { float a=(i/max(pCount,1.0)-0.5)*2.0; pos=vec2(a*0.8,0.3*sin(a*50.0+t*10.0)*exp(-a*a*params.x)); }
-    else if (type == 62) { float a=t*2.0+i*0.5; pos=vec2(0.4*cos(a*params.x),0.2*sin(a*params.y)); }
-    else { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.1+0.4*proceduralHash1(i+t); pos=vec2(r*cos(a),r*sin(a)); } // type 63
+    if (type < 32) {
+        if (type < 16) {
+           if (type < 8) {
+               if (type == 0) pos = vec2(sin(t*params.x+phase)*cos(t*params.y+phase), cos(t*params.z+phase)*sin(t*params.y+phase))*(0.5+0.3*sin(t+phase));
+               else if (type == 1) { float r=0.1+0.4*(i/max(pCount,1.0)); pos=vec2(r*sin(t*params.x+i*0.1), r*cos(t*params.y+i*0.1)); }
+               else if (type == 2) { float petals=5.0+3.0*sin(t*0.1); float r=0.4*(0.5+0.5*sin(phase*5.0+t)); pos=vec2(r*sin(t*params.x+i*petals*0.01)*cos(t*params.z), r*cos(t*params.y+i*petals*0.01)*sin(t*params.z)); }
+               else if (type == 3) { float r=0.4*(0.5+0.5*sin(i*0.1+t)); float a=t*0.5+i*PI*2.0/max(pCount,1.0); pos=vec2(r*sin(a*params.x)*cos(a*params.y), r*sin(a*params.z)*sin(a*params.y)); }
+               else if (type == 4) { pos=vec2((i/max(pCount,1.0))*1.5-0.75, 0.4*sin(t*params.x+10.0*(i/max(pCount,1.0))*params.y)*cos(t*params.z)); }
+               else if (type == 5) { float orbitSpeed=params.x*0.5; float orbitRadius=0.2+0.15*sin(i*0.1); pos=vec2(0.2*sin(t*params.y)+orbitRadius*cos(t*orbitSpeed+i*0.2), 0.2*cos(t*params.z)+orbitRadius*sin(t*orbitSpeed+i*0.2)); }
+               else if (type == 6) { float a=0.5*(i/max(pCount,1.0)); float r=0.3*(sin(t*0.1)*0.5+0.5); pos=vec2(r*sin(a*PI*params.x+t)*cos(a*PI*3.0*params.y+t), r*sin(a*PI*params.z+t)*sin(a*PI*2.0*params.y+t)); }
+               else if (type == 7) { float a=i/max(pCount,1.0)*PI*2.0; float z=(i/max(pCount,1.0))*2.0-1.0; float radius=0.3+0.1*sin(t*params.x+z*5.0); pos=vec2(radius*sin(a*params.y+t*2.0), z*cos(t*params.z)+radius*cos(a*params.y+t*2.0)*sin(t)); }
+           } else {
+               if (type == 8) { float angle=i/max(pCount,1.0)*PI*10.0+t; float radius=0.05+0.3*(i/max(pCount,1.0)); pos=vec2(radius*cos(angle*params.x)*sin(t*params.y), radius*sin(angle*params.z)*cos(t*params.y)); }
+               else if (type == 9) { float a=(i/max(pCount,1.0)-0.5)*0.6; pos=vec2(a, (0.2+0.15*sin(t*0.2))*sin(t*params.x+a*10.0*params.y)*cos(t*params.z+a*8.0)); }
+               else if (type == 10) { float a=(i/max(pCount,10.0))*2.0-1.0; pos=vec2(a*0.7, sin(t*params.x+a*5.0*params.y)*0.2*params.z); }
+               else if (type == 11) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.4*(0.8+0.2*abs(cos(a*params.x+t))); pos=vec2(r*sin(a*params.y+t), r*cos(a*params.z+t)); }
+               else if (type == 12) { float a=i/max(pCount,1.0)*PI*10.0+t; float z=sin(a*0.3*params.z); pos=vec2((0.3+0.1*z)*cos(a*params.x), (0.1*z+0.2)*sin(a*params.y)); }
+               else if (type == 13) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=1.0/(1.5+0.8*sin(a*params.x+t)); pos=vec2(r*cos(a*params.y), r*sin(a*params.z)); }
+               else if (type == 14) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.3*pow(abs(sin(a*params.x+t)), pPow); pos=vec2(r*sin(a*params.y+t), r*cos(a*params.z+t)); }
+               else if (type == 15) { float a=i/max(pCount,1.0)*PI*2.0; vec2 p=vec2(0.4*cos(a*params.x+floor(t*2.0)), 0.4*sin(a*params.y+floor(t*2.0))); pos=floor(p*pFlo)/pFlo; }
+           }
+        } else {
+           // type 16-31
+           if (type < 24) {
+               if (type == 16) { float a=i/max(pCount,1.0)*PI*2.0; float r=pow(pow(abs(cos(params.x*a/4.0)),params.y)+pow(abs(sin(params.x*a/4.0)),params.z),-1.0/pPow); pos=vec2(r*cos(a+t), r*sin(a+t))*0.3; }
+               else if (type == 17) { float a=i/max(pCount,1.0)*PI*4.0+t; float r=exp(cos(a))-2.0*cos(4.0*a)+pow(sin(a/12.0),5.0); pos=vec2(r*sin(a), r*cos(a))*0.1*params.x; }
+               else if (type == 18) { float a=(i/max(pCount,1.0)-0.5)*PI; float r=0.5*sqrt(abs(cos(2.0*a*params.x))); pos=vec2(r*cos(a+t), r*sin(a+t)*params.y); }
+               else if (type == 19) { float a=i/max(pCount,1.0)*PI*10.0+t; float R=0.5,rr=0.2,d=0.15*params.z; pos=vec2((R-rr)*cos(a)+d*cos((R-rr)*a/rr),(R-rr)*sin(a)-d*sin((R-rr)*a/rr)); }
+               else if (type == 20) { float a=i/max(pCount,1.0)*PI*15.0+t; float r=0.05*exp(0.15*a*params.x); pos=vec2(r*cos(a), r*sin(a))/(1.0+r*2.0); }
+               else if (type == 21) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.3*(1.0-sin(a+t))*params.x; pos=vec2(r*cos(a), r*sin(a)); }
+               else if (type == 22) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.3+0.1*sign(sin(a*params.x)); pos=vec2(r*cos(a), r*sin(a)); }
+               else if (type == 23) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.1+0.3*(abs(sin(t))>0.5?1.0:0.5); pos=vec2(r*cos(a*params.x+t), r*sin(a*params.y+t)); }
+           } else {
+               if (type == 24) { float a=i/max(pCount,1.0)*PI*2.0; float R=0.3,rr=0.1; pos=vec2((R+rr*cos(a*params.x))*cos(a+t*0.5), rr*sin(a*params.y)); }
+               else if (type == 25) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(sin(a)+2.0*sin(2.0*a), cos(a)-2.0*cos(2.0*a))*0.1*params.x; }
+               else if (type == 26) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(pow(cos(a*params.x),3.0), pow(sin(a*params.y),3.0))*0.4; }
+               else if (type == 27) { float idVal=i+floor(t*10.0); pos=(proceduralHash2(idVal)-0.5)*0.8*params.x; }
+               else if (type == 28) { float a=(i/max(pCount,1.0))*2.0-1.0; pos=vec2(a*0.8, 0.2*sin(a*10.0*params.x+t)*cos(a*5.0*params.y)); }
+               else if (type == 29) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=(mod(i,2.0)>0.5)?0.4:0.2; pos=vec2(r*cos(a*params.x),r*sin(a*params.y)); }
+               else if (type == 30) { float a=i/max(pCount,1.0)*PI*20.0+t; float r=0.02*a*params.x; pos=vec2(r*cos(a),r*sin(a))/(1.0+r); }
+               else if (type == 31) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.5*(1.0-0.5/(1.0+abs(sin(t)))); pos=vec2(r*cos(a*params.x),r*sin(a*params.y)); }
+           }
+        }
+    } else {
+        // type 32-63
+        if (type < 48) {
+            if (type < 40) {
+                if (type == 32) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(sin(a*params.x+t),cos(a*params.y+t))*0.4; }
+                else if (type == 33) { float a=i/max(pCount,1.0); pos=vec2(floor(sin(a*10.0*params.x)*10.0)/10.0, floor(cos(a*10.0*params.y)*10.0)/10.0)*0.4; }
+                else if (type == 34) { float a=i/max(pCount,1.0)*PI*2.0+t; float r=0.3*(0.8+0.2*cos(a*5.0*params.x)); pos=vec2(r*sin(a),r*cos(a)); }
+                else if (type == 35) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(cos(a)*cos(a*params.x),sin(a)*sin(a*params.y))*0.4; }
+                else if (type == 36) { float a=sqrt(i+t*10.0)*params.x; float r=0.05*a; pos=vec2(r*cos(a),r*sin(a))/(1.0+r); }
+                else if (type == 37) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.3*(1.0+0.1*sin(a*3.0*params.x)*sign(sin(a*9.0))); pos=vec2(r*cos(a+t),r*sin(a+t)); }
+                else if (type == 38) { float a=i/max(pCount,1.0); pos=vec2((proceduralHash1(i)-0.5)*0.8, fract(a*5.0+t*params.x)*0.8-0.4); }
+                else if (type == 39) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(0.3*cos(a+t)+0.1*cos(a*params.x+t*5.0), 0.3*sin(a+t)+0.1*sin(a*params.y+t*5.0)); }
+            } else {
+                if (type == 40) { float a=(i/max(pCount,1.0)-0.5)*2.0; pos=vec2(a,0.1/(a*params.x+0.001+sin(t)))*0.1; }
+                else if (type == 41) { float a=i/max(pCount,1.0)*PI*2.0; float d=abs(sin(a*params.x+t))*abs(cos(a*params.y-t)); pos=vec2(d*cos(a),d*sin(a))*0.5; }
+                else if (type == 42) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(cos(a)*params.x,sin(a)*params.y)*(0.3+0.1*cos(t+a*params.z)); }
+                else if (type == 43) { float a=i/max(pCount,1.0)*PI*2.0; float r=floor(a*params.x)/params.x; pos=vec2(0.3*cos(a+t),0.3*sin(a+t))*(0.8+0.2*sin(r*10.0)); }
+                else if (type == 44) { float a=i/max(pCount,1.0)*PI*2.0+t; float a2=floor(a*params.x)/params.x; pos=vec2(0.4*cos(a2),0.4*sin(a2)); }
+                else if (type == 45) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(cos(a*params.x+t*0.1),sin(a*params.y+t*0.2))*0.4; }
+                else if (type == 46) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.4*abs(sin(a*params.x+t)); pos=vec2(r*cos(a*params.y),r*sin(a*params.z)); }
+                else if (type == 47) { float a=i/max(pCount,1.0)*PI*2.0; float r=0.3+0.1*cos(t*params.x+a*params.y); pos=vec2(r*cos(a),r*sin(a)); }
+            }
+        } else {
+            if (type < 56) {
+                if (type == 48) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(0.4*cos(a*params.x),0.4*sin(a*params.y))*(0.5+0.5*sin(t+a)); }
+                else if (type == 49) { float a=i/max(pCount,1.0)*PI*2.0; float r=sqrt(a)*0.1*params.z; pos=vec2(r*cos(a*params.x+t),r*sin(a*params.y+t)); }
+                else if (type == 50) { float a=i/max(pCount,10.0); pos=vec2(0.4*sin(a*params.x+t),0.4*cos(a*params.y+t))*(0.5+0.5*abs(sin(t))); }
+                else if (type == 51) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(0.3*cos(a)*params.x,0.3*sin(a)*params.y)*cos(a*params.z+t); }
+                else if (type == 52) { float a=i/max(pCount,1.0); pos=vec2(0.5*sin(t+a*params.x),0.5*cos(t-a*params.y))*abs(sin(a*params.z)); }
+                else if (type == 53) { float a=i/max(pCount,10.0)*PI*2.0; pos=vec2(0.4*cos(a+t),0.4*sin(a+t))*pow(abs(sin(a*params.x)),pPow); }
+                else if (type == 54) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(0.4*cos(a*params.x),0.4*sin(type%2==0?a:t))*params.y; }
+                else if (type == 55) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(0.3*cos(a)*params.x,0.3*sin(a)*params.y)*(1.0+0.3*sin(a*params.z)); }
+            } else {
+                if (type == 56) { float a=i; pos=vec2(0.4*sin(a*params.x),0.4*cos(a*params.y))*params.z; }
+                else if (type == 57) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(0.4*cos(a),0.4*sin(a))*abs(sin(a*params.x+t)); }
+                else if (type == 58) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(0.4*cos(a*params.x),0.4*sin(a*params.y+t)); }
+                else if (type == 59) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(0.3*cos(a)*params.x,0.3*sin(a)*params.y)*abs(cos(t)); }
+                else if (type == 60) { float a=i/max(pCount,1.0)*PI*2.0; pos=vec2(0.4*cos(a),0.4*sin(a*params.x+t)); }
+                else if (type == 61) { float a=i/max(pCount,1.0)*PI*2.0+t; pos=vec2(sin(a*params.x),cos(a*params.y))*0.4; }
+                else if (type == 62) { float a=i/max(pCount,1.0)*PI*10.0; pos=vec2(sin(a+t)*0.3,cos(a*params.x+t)*0.3); }
+                else if (type == 63) { pos=vec2(sin(t*params.x+phase),cos(t*params.y+phase))*0.4; }
+            }
+        }
     return pos;
   }
 
@@ -1261,14 +1487,98 @@
   }
 
   // ═══ DISPATCHER: Busca Binária Otimizada (Max 136 tipos) ═══
+  // ═══ DISPATCHER FINAL: Árvore Binária de Alta Performance (O(log N)) ═══
   vec2 getCurvePos(int type, float t, float i, float pCount, vec3 params) {
-    if (type < 128) {
-      if (type < 64) return getCurvePosA(type, t, i, pCount, params);
-      else           return getCurvePosB(type, t, i, pCount, params);
+    if (type < 64)   return getCurvePosA(type, t, i, pCount, params);
+    if (type < 128)  return getCurvePosB(type, t, i, pCount, params);
+    
+    // Nível 3: 128-150+ (Experimental / Pós-Singularidade)
+    float a = i / max(pCount, 1.0) * PI * 2.0 + t;
+    float aa = i / max(pCount, 1.0);
+    vec2 pos = vec2(0.0);
+    float n = pK;
+
+    if (type < 136) {
+        if (type == 128) { // Episiclos
+            float f1=1.0; float f2=floor(params.x*5.0)+n; float f3=floor(params.y*7.0)+n;
+            pos = vec2(0.2*cos(a*f1)+0.1*cos(a*f2+t)+0.05*cos(a*f3-t), 0.2*sin(a*f1)+0.1*sin(a*f2+t)+0.05*sin(a*f3-t));
+        } else if (type == 129) { // Lissajous 3D
+            float kx=params.x*3.0+1.0; float ky=params.y*4.0; float kz=params.z*5.0;
+            float z3=0.3*sin(a*kz); float pr=1.0/(1.5-z3);
+            pos = vec2(0.3*sin(a*kx+t)*pr, 0.3*sin(a*ky+t*1.5)*pr);
+        } else if (type == 130) { // Penrose
+            float ang=a*(5.0+n*0.5); float r=0.4*aa*(1.0+0.3*sin((cos(ang)+cos(2.0*ang))*10.0-t));
+            pos = vec2(r*cos(a+t), r*sin(a+t));
+        } else if (type == 131) { // Magnético
+            float r=aa*0.5; float B=0.4*pow(sin(a*(params.x*10.0+n)),2.0)/(r+0.1)*sin(t-r*10.0);
+            pos = vec2(B*cos(a), B*sin(a));
+        } else if (type == 132) { // Turing
+            float turing = sin(cos(a)*aa*20.0+t) + sin(sin(a)*aa*15.0-t);
+            pos = vec2(0.3*aa*(1.0+0.2*turing)*cos(a), 0.3*aa*(1.0+0.2*turing)*sin(a));
+        } else if (type == 133) { // Navier-Stokes
+            float r=aa*0.4; float sw=a+((params.x*2.0+n)/(r*r+0.05))*sin(t)*0.5;
+            pos = vec2(r*cos(sw), r*sin(sw));
+        } else if (type == 134) { // Beltrami
+            float v=(aa-0.5)*4.0; float u=a*(params.x*3.0+n); float ch=0.5*(exp(v)+exp(-v));
+            pos = vec2(0.3/ch*cos(u-t), 0.3/ch*sin(u-t));
+        } else { // 135: Dirac
+            float q1=fract(sin(a*12.98+aa*78.23)*43758.54);
+            pos = vec2(0.3*sqrt(q1)*cos(a*20.0+t), 0.3*sqrt(q1)*sin(a*20.0-t));
+        }
     } else {
-      if (type < 132) return getCurvePosC(type, t, i, pCount, params);
-      else            return getCurvePosD(type, t, i, pCount, params);
+        if (type < 144) {
+            if (type == 136) { // Möbius
+                float u=a*(1.0+params.x); float v=(aa-0.5)*2.0; float r=1.0+v*0.5*cos(u*0.5);
+                float pr=1.0/(1.5-0.3*v*0.5*sin(u*0.5));
+                pos = vec2(0.3*r*cos(u)*pr, 0.3*r*sin(u)*pr);
+            } else if (type == 137) { // Gyroid
+                float gy=sin(cos(a*params.x)*aa*4.0)*cos(sin(a*params.y)*aa*4.0) + sin(sin(a*params.y)*aa*4.0)*cos(sin(t)*2.0);
+                pos = vec2(0.3*aa+0.1*gy)*vec2(cos(a+t), sin(a-t));
+            } else if (type == 138) { // Clifford (Unrolled)
+                float A=1.5+n*0.1; float D=2.0+params.z; vec2 c=vec2(cos(a),sin(a))*0.2;
+                c=vec2(sin(A*c.y)+1.6*cos(A*c.x), sin(-1.8*c.x)+D*cos(B*c.y))*0.5;
+                c=vec2(sin(A*c.y)+1.6*cos(A*c.x), sin(-1.8*c.x)+D*cos(B*c.y))*0.5;
+                pos = c * 0.5;
+            } else if (type == 139) { // Julia (Simplified)
+                vec2 z=vec2((aa-0.5)*3.0, (fract(a/PI*0.5)-0.5)*3.0);
+                vec2 c=vec2(cos(t*params.x)*0.8, sin(t*params.y)*0.8);
+                z=vec2(z.x*z.x-z.y*z.y, 2.0*z.x*z.y)+c;
+                z=vec2(z.x*z.x-z.y*z.y, 2.0*z.x*z.y)+c; // Unrolled 2
+                pos = vec2(0.4*length(z)/4.0)*vec2(cos(a),sin(a));
+            } else if (type == 140) { // Zeta (Unrolled 3 terms)
+                float s_im=a*10.0; vec2 z=vec2(0.0);
+                z+=vec2(cos(-s_im*log(1.0)),sin(-s_im*log(1.0)));
+                z+=1.0/sqrt(2.0)*vec2(cos(-s_im*log(2.0)),sin(-s_im*log(2.0)));
+                z+=1.0/sqrt(3.0)*vec2(cos(-s_im*log(3.0)),sin(-s_im*log(3.0)));
+                pos = z*0.1;
+            } else if (type == 141) { // Hopf
+                float u1=a; float u2=aa*PI; float u3=t*0.2;
+                pos = vec2(cos(u1)*sin(u2), sin(u1)*sin(u2))*0.3/(1.0+cos(u2));
+            } else if (type == 142) { // 4D Projection
+                float xi=a; float eta=aa*PI;
+                pos = vec2(cos(xi)*sin(eta), sin(xi)*sin(eta))*0.2/(1.0-sin(xi)*cos(eta)+0.001);
+            } else { // 143: Schwarzschild
+                float phi=a+(2.0*params.x)/max(abs((aa-0.5)*10.0),params.x*1.1);
+                pos = vec2(0.3*cos(phi), 0.3*sin(phi));
+            }
+        } else {
+            // type 144-150+ (Matriz Final)
+            if (type == 144) { // Gray-Scott
+                float u=sin(cos(a)*aa*30.0+t); float v=sin(sin(a)*aa*40.0+t);
+                pos = vec2(0.4*aa*(1.0+0.1*u*v)*cos(a), 0.4*aa*(1.0+0.1*u*v)*sin(a));
+            } else if (type == 145) { // Lorentz
+                float gam = 1.0/sqrt(1.0-params.x*params.x*0.9+0.01);
+                pos = vec2(gam*(aa*cos(a)-params.x*t), gam*(aa*sin(a)-params.x*aa*cos(a)))*0.1;
+            } else if (type == 146) { // Cornu (Simplified)
+                float s=aa*10.0; pos = vec2(cos(s*s*0.1), sin(s*s*0.1))*0.4;
+            } else if (type == 147) { // Klein J
+                pos = vec2(0.4*abs(sin(a*10.0))*cos(a), 0.4*abs(sin(a*10.0))*sin(a));
+            } else { // Singularity
+                pos = vec2(0.3*abs(sin(a*floor(params.x*5.0)+t))*cos(a), 0.3*abs(sin(a*floor(params.x*5.0)+t))*sin(a));
+            }
+        }
     }
+    return pos;
   }
 
 
@@ -1282,48 +1592,64 @@
     vec2 gridUv = uv + uCameraPos; 
     
     if (uBgMode == 0) {
-        // MODO 0: LABORATÓRIO (Grade Geométrica)
-        float grid = 0.0;
-        grid += smoothstep(0.495, 0.5, abs(fract(gridUv.x * 2.0) - 0.5));
-        grid += smoothstep(0.495, 0.5, abs(fract(gridUv.y * 2.0) - 0.5));
-        outColor += vec3(0.05, 0.15, 0.3) * grid * 0.4;
-        float star = fract(sin(dot(floor(gridUv * 5.0), vec2(12.9898, 78.233))) * 43758.5453);
-        if(star > 0.99) outColor += vec3(0.6) * star;
+        // MODO 0: LABORATÓRIO (Nébula Médica Suave)
+        outColor += vec3(0.02, 0.05, 0.08) * (0.5 + 0.5 * sin(gridUv.x * 0.2 + t * 0.1));
+        // Estrelas de fundo sutis (pontos, não quadrados)
+        float star = fract(sin(dot(floor(gridUv * 15.0), vec2(12.989, 78.23))) * 43758.54);
+        if(star > 0.992) outColor += vec3(0.3, 0.5, 0.6) * (0.5 + 0.5 * sin(t + star * 10.0));
     } else {
         // MODO 1: COSMOS (Espaço Profundo com Nebulosa e Esferas Brilhantes)
         // Nebulosa de fundo baratíssima (apenas seno suave)
         outColor += vec3(0.02, 0.0, 0.05) * (0.5 + 0.5 * sin(gridUv.x * 0.5 + t * 0.2));
         outColor += vec3(0.0, 0.03, 0.04) * (0.5 + 0.5 * cos(gridUv.y * 0.6 - t * 0.1));
         
-        // Estrelas cintilantes intensas
-        float star = fract(sin(dot(floor(gridUv * 8.0), vec2(12.9898, 78.233))) * 43758.5453);
+        // Estrelas cintilantes intensas (PONTUAIS, NÃO QUADRADAS)
+        vec2 starG = gridUv * 8.0;
+        float star = fract(sin(dot(floor(starG), vec2(12.98, 78.23))) * 43758.54);
         if(star > 0.97) {
             float blink = 0.5 + 0.5 * sin(t * 3.0 + star * 100.0);
-            outColor += vec3(0.5, 0.8, 1.0) * blink; // Esferas/Estrelas brilhantes coloridas
+            float dStar = length(fract(starG) - 0.5);
+            outColor += vec3(0.5, 0.8, 1.0) * (0.08 / (dStar + 0.05)) * blink;
         }
     }
 
-    // 1. Render Food/Energy Spheres (with DRAIN logic)
+    // 1. Render Food/Energy Spheres (with DRAIN/ATTR logic)
     for(int j = 0; j < 100; j++) {
         if (j >= numFood) break;
         vec2 fRelative = foodPos[j] - uCameraPos;
         float dFood = length(uv - fRelative);
-        float distToPlayer = length(fRelative); // Distância da esfera ao player (centro da tela)
+        float distToPlayer = length(fRelative); 
         float fSize = foodSize[j];
         
-        float hue = foodHue[j];
-        vec3 fColor = vec3(0.5 + 0.5 * sin(hue), 0.5 + 0.5 * cos(hue + 2.0), 0.5 + 0.5 * sin(hue + 4.0));
-        
-        // NOVO G-COMBAT: DRENO VISUAL DO CENÁRIO
-        if (distToPlayer < 0.7) {
-             float drainB = smoothstep(0.7, 0.1, distToPlayer) * pfGStealBri;
-             float drainC = smoothstep(0.7, 0.1, distToPlayer) * pfGStealCol;
-             fColor *= (1.0 - drainB * 0.95); // Apaga brilho
-             fColor = mix(fColor, vec3(dot(fColor, vec3(0.33))), drainC); // Apaga cor
+        if (fSize > 9.0) {
+            // ESFERAS DE ATRIBUTO (Especial)
+            vec3 attrCol = vec3(0.0);
+            float typeAttr = mod(float(j), 5.0);
+            if (typeAttr == 0.0) attrCol = vec3(1.0, 0.9, 0.2); // Dash - Yellow
+            if (typeAttr == 1.0) attrCol = vec3(0.0, 1.0, 0.6); // Dreno - Green
+            if (typeAttr == 2.0) attrCol = vec3(1.0, 0.2, 0.4); // Atração - Red
+            if (typeAttr == 3.0) attrCol = vec3(0.0, 0.8, 1.0); // Repelir - Blue
+            if (typeAttr == 4.0) attrCol = vec3(0.8, 0.0, 1.0); // Doar - Purple
+            
+            float pulse = 0.5 + 0.5 * sin(time * 15.0);
+            float inner = smoothstep(0.02, 0.0, dFood);
+            float glow = (0.025 * pulse) / (dFood + 0.005);
+            outColor += attrCol * (inner + glow * 2.0);
+        } else {
+            // FÓTONS NORMAIS
+            float hue = foodHue[j];
+            vec3 fColor = vec3(0.5 + 0.5 * sin(hue), 0.5 + 0.5 * cos(hue + 2.0), 0.5 + 0.5 * sin(hue + 4.0));
+            
+            if (distToPlayer < 0.7) {
+                 float drainB = smoothstep(0.7, 0.1, distToPlayer) * pfGStealBri;
+                 float drainC = smoothstep(0.7, 0.1, distToPlayer) * pfGStealCol;
+                 fColor *= (1.0 - drainB * 0.95);
+                 fColor = mix(fColor, vec3(dot(fColor, vec3(0.33))), drainC);
+            }
+            
+            float brIntensity = (0.025 * fSize) / (dFood + 0.0008 * fSize);
+            outColor += fColor * brIntensity * (1.2 + 0.3 * sin(time * 10.0 + float(j)));
         }
-        
-        float brIntensity = (0.015 * fSize) / (dFood + 0.001 * fSize);
-        outColor += fColor * brIntensity * (0.8 + 0.2 * sin(time * 8.0 + float(j)));
     }
 
     // 2. Render Local Player at screen center
@@ -1795,11 +2121,21 @@ function toggleSettings() {
     const p = document.getElementById('creative-lab');
     p.classList.toggle('active');
 }
+function toggleMinimizeHUD() {
+    const p = document.getElementById('geo-hud');
+    if(!p) return;
+    p.classList.toggle('minimized');
+    const btn = document.querySelector('.hud-toggle-btn');
+    if(btn) btn.textContent = p.classList.contains('minimized') ? '▶' : '◀';
+}
+
 function toggleMinimizeLab() {
     const p = document.getElementById('creative-lab');
+    if(!p) return;
     p.classList.toggle('minimized');
     const btn = document.querySelector('.lab-toggle-btn');
-    btn.textContent = p.classList.contains('minimized') ? '□' : '_';
+    if(btn) btn.textContent = p.classList.contains('minimized') ? '◀' : '▶';
+    p.style.display = 'block'; 
 }
 
 function setQuality(lvl) {
@@ -1831,6 +2167,128 @@ async function startGame() {
     window.addEventListener('mouseup', () => isDashing = false);
     window.addEventListener('contextmenu', e => e.preventDefault());
     isPlaying = true;
+    document.getElementById('attribute-bar').style.display = 'flex';
+    
+    // Listeners de Teclado para Skills
+    window.addEventListener('keydown', (e) => {
+        const key = e.key;
+        if (key >= '1' && key <= '5') {
+            activateSkill(parseInt(key) - 1);
+        }
+    });
+}
+
+// SISTEMA DE ATRIBUTOS
+let attrLevels = [0, 0, 0, 0, 0];
+let skillCooldowns = [0, 0, 0, 0, 0];
+
+function activateSkill(idx) {
+    if (attrLevels[idx] <= 0) return;
+    if (Date.now() < skillCooldowns[idx]) return;
+    
+    const slot = document.getElementById(`attr-${idx}`);
+    slot.classList.add('attr-active');
+    setTimeout(() => slot.classList.remove('attr-active'), 500);
+
+    const lvl = attrLevels[idx];
+
+    // Efeitos da Skill (Combat Attr)
+    if (idx === 0) { // DASH (Super Impulso)
+        dashEnergy = Math.min(100, dashEnergy + 50);
+        pMoveSpd = 2.0 + lvl * 0.5;
+        showMsg("DASH DE LUZ!");
+        setTimeout(() => pMoveSpd = 1.0, 2000);
+    } 
+    else if (idx === 1) { // DRENO (Suga Brilho/Cor)
+        pfGStealBri = 0.5 + lvl * 0.2;
+        pfGStealCol = 0.5 + lvl * 0.2;
+        myGlow = 1.5;
+        showMsg("DRENO ESPECTRAL ATIVADO!");
+        setTimeout(() => { pfGStealBri = 0; pfGStealCol = 0; }, 5000);
+    } 
+    else if (idx === 2) { // ATRAÇÃO (Puxa esferas e adversários)
+        pGFood = 10.0 + lvl * 5.0; 
+        pDragRange = 1.5 + lvl * 0.5;
+        pGPull = 1.0 + lvl * 1.5; // Puxa adversários
+        showMsg("SKILL: ATRAÇÃO SINGULAR!");
+        setTimeout(() => { pGFood = 0; pDragRange = 0.5; pGPull = 0; }, 4000);
+    } 
+    else if (idx === 3) { // REPELIR (Força Gravitacional Negativa)
+        pGrav = -2.0 - lvl * 1.0; // Gravidade negativa repele
+        showMsg("SKILL: REPULSÃO GEOMÉTRICA!");
+        setTimeout(() => pGrav = 0, 3000);
+    } 
+    else if (idx === 4) { // DOAR / EXPULSAR (Joga esfera fora)
+        if (myParticles > 20) {
+            myParticles -= (15 + lvl * 5);
+            // Spawning a food at player pos that has high mass
+            let donatedHue = Math.random()*6.28;
+            foods.push({ x: playerX, y: playerY, hue: donatedHue, size: 4.0, mass: (10 + lvl * 5), isAttr: false });
+            syncFoods();
+            showMsg("MASSA EXPULSADA / DOADA!");
+        }
+    }
+
+    skillCooldowns[idx] = Date.now() + 5000; // 5s cooldown
+}
+
+// EVOLUÇÃO PASSIVA DA CURVA (Mutação ao comer esferas)
+function mutateCurvePassively() {
+    // Escolhe UM parâmetro aleatório para evoluir ao comer qualquer esfera
+    const params = ["pX", "pY", "pZ", "pW", "pK", "pJitter", "pTwist", "pSke", "pDen", "pTai", "pPow"];
+    const p = params[Math.floor(Math.random() * params.length)];
+    
+    // Incremento suave (0.01 a 0.02)
+    const inc = 0.01 + Math.random() * 0.01;
+    
+    if (p === "pX") pX += inc;
+    else if (p === "pY") pY += inc;
+    else if (p === "pZ") pZ += inc;
+    else if (p === "pW") pW += inc;
+    else if (p === "pK") pK += inc;
+    else if (p === "pJitter") pJitter += inc * 0.1;
+    else if (p === "pTwist") pTwist += inc;
+    else if (p === "pSke") pSke += inc;
+    else if (p === "pDen") pDen += inc;
+    else if (p === "pTai") pTai += inc;
+    else if (p === "pPow") pPow += inc;
+
+    // Limites de segurança e atualização sincronizada
+    pX = Math.max(0.1, Math.min(10.0, pX));
+    pY = Math.max(0.1, Math.min(10.0, pY));
+    pZ = Math.max(0.1, Math.min(10.0, pZ));
+    pW = Math.max(0.1, Math.min(10.0, pW));
+    pK = Math.max(0.1, Math.min(32.0, pK));
+    pJitter = Math.max(0, Math.min(0.2, pJitter));
+    pSke = Math.max(0.2, Math.min(3.0, pSke));
+    pDen = Math.max(0.1, Math.min(5.0, pDen));
+    pTai = Math.max(0.1, Math.min(8.0, pTai));
+    pPow = Math.max(0.1, Math.min(2.0, pPow));
+    
+    // Sincroniza com os sliders do editor
+    document.getElementById('sld-x').value = pX;
+    document.getElementById('sld-y').value = pY;
+    document.getElementById('sld-z').value = pZ;
+    document.getElementById('sld-w').value = pW;
+    document.getElementById('sld-k').value = pK;
+    document.getElementById('sld-jit').value = pJitter;
+    document.getElementById('sld-twi').value = pTwist;
+    document.getElementById('sld-ske').value = pSke;
+    document.getElementById('sld-den').value = pDen;
+    document.getElementById('sld-tai').value = pTai;
+    document.getElementById('sld-pow').value = pPow;
+
+    updateEditor();
+}
+
+function updateAttrUI() {
+    for(let i=0; i<5; i++) {
+        const el = document.getElementById(`lvl-${i}`);
+        const slot = document.getElementById(`attr-${i}`);
+        el.textContent = attrLevels[i];
+        if (attrLevels[i] > 0) slot.classList.add('unlocked');
+        else slot.classList.remove('unlocked');
+    }
 }
 
 function randomizeCurrentColor() {
@@ -2082,6 +2540,24 @@ function isHost() {
     return keys[0] === myName;
 }
 
+function respawnFood(index) {
+    let typeRand = Math.random();
+    let size = 1.0, mass = 1.0, isAttr = false;
+    if (typeRand > 0.95) { size = 5.0; mass = 5.0; }
+    else if (typeRand > 0.8) { size = 2.0; mass = 2.0; }
+    else if (typeRand < 0.05) { size = 10.0; mass = 1.0; isAttr = true; } 
+
+    foods[index] = { 
+        x: (Math.random() * 2 - 1) * MAP_SIZE, 
+        y: (Math.random() * 2 - 1) * MAP_SIZE, 
+        hue: Math.random() * Math.PI * 2,
+        size: size,
+        mass: mass,
+        isAttr: isAttr
+    };
+    syncFoods();
+}
+
 function initFoods() {
     foods = [];
     const numClusters = 5;
@@ -2094,33 +2570,33 @@ function initFoods() {
             let angle = Math.random() * 6.28;
             let dist = Math.random() * (MAP_SIZE * 0.2); 
             let typeRand = Math.random();
-            let size = 1.0, mass = 1.0;
-            if (typeRand > 0.95) { size = 5.0; mass = 5.0; } 
-            else if (typeRand > 0.8) { size = 2.0; mass = 2.0; } 
+            let size = 1.0, mass = 1.0, isAttr = false;
+            
+            if (typeRand > 0.95) { size = 8.0; mass = 15.0; } // SUPER GIGANTE
+            else if (typeRand > 0.8) { size = 3.5; mass = 5.0; } // MEDIA
+            else if (typeRand < 0.1) { size = 12.0; mass = 1.0; isAttr = true; } // ATRIBUTO (MAIOR)
+            else { size = 1.5; mass = 2.0; } // COMUM (MAIOR)
             foods.push({
                 x: centerX + Math.cos(angle) * dist,
                 y: centerY + Math.sin(angle) * dist,
                 hue: clusterColor + (Math.random() - 0.5) * 0.5,
                 size: size,
-                mass: mass
+                mass: mass,
+                isAttr: isAttr
             });
         }
     }
-    syncFoods();
-}
-
-function respawnFood(index) {
-    let typeRand = Math.random();
-    let size = 1.0, mass = 1.0;
-    if (typeRand > 0.95) { size = 5.0; mass = 5.0; }
-    else if (typeRand > 0.8) { size = 2.0; mass = 2.0; }
-    foods[index] = { 
-        x: (Math.random() * 2 - 1) * MAP_SIZE, 
-        y: (Math.random() * 2 - 1) * MAP_SIZE, 
-        hue: Math.random() * Math.PI * 2,
-        size: size,
-        mass: mass
-    };
+    // Adicionar algumas esferas dispersas pelo mapa todo para não ficar vazio
+    for (let i = 0; i < 30; i++) {
+        foods.push({
+            x: (Math.random() - 0.5) * MAP_SIZE * 2,
+            y: (Math.random() - 0.5) * MAP_SIZE * 2,
+            hue: Math.random() * 6.28,
+            size: 2.0 + Math.random() * 2.0,
+            mass: 2.0,
+            isAttr: false
+        });
+    }
     syncFoods();
 }
 
@@ -2146,6 +2622,8 @@ function gameTick() {
     playerX += (mouseX * 2.0) * turnSpeed;
     playerY += (mouseY * 2.0) * turnSpeed;
     
+    let myCatchRadius = 0.05 + (myParticles / MAX_PARTICLES) * 0.12 + (pGFood * 0.05);
+    
     // G-COMBAT: Alcance de Vácuo aumentado pelo "Ralo Cósmico" (pGFood)
     foods.forEach((f, idx) => {
         let dx = playerX - f.x;
@@ -2153,7 +2631,7 @@ function gameTick() {
         let d = Math.sqrt(dx*dx + dy*dy);
 
         // Ajusta raio de captura baseado no tamanho da esfera (+ fácil coletar gigantes)
-        let catchRadius = (0.05 + (myParticles / MAX_PARTICLES) * 0.12 + (pGFood * 0.05)) * (0.8 + f.size * 0.4);
+        let actualCatchRadius = myCatchRadius * (0.8 + f.size * 0.4);
 
         // NOVO: Arrasto Gravitacional Dinâmico (Rastejamento)
         if (d < pDragRange && d > 0.01) {
@@ -2168,10 +2646,22 @@ function gameTick() {
             if (pfGStealCol > 0.0) pSatBase = Math.min(2.5, pSatBase + pfGStealCol * 0.005);
         }
 
-        if (d < catchRadius) {
+        if (d < actualCatchRadius) {
             score += f.mass || 1; 
             document.getElementById('score').textContent = score;
             if (myParticles < MAX_PARTICLES) myParticles += (f.mass || 1.0); 
+            if (f.isAttr) {
+                // Ganha um atributo ESPECÍFICO baseado no índice do j (mod 5)
+                // Isso garante que cada esfera de cor única melhore um atributo único
+                let actualAttrIndex = idx % 5;
+                attrLevels[actualAttrIndex]++;
+                updateAttrUI();
+                showMsg("ATRIBUTO MELHORADO: " + ["DASH", "DRENO", "ATRAÇÃO", "REPELIR", "DOAR"][actualAttrIndex]);
+            } else {
+                // Evolução passiva da aparência da curva
+                mutateCurvePassively();
+            }
+            
             myGlow = Math.min(1.2, myGlow + 0.2 * (f.mass || 1.0)); // Brilho maior para comidas maiores!
             myDamage = 0; // CURA IMEDIATA DO MOVIMENTO E BRILHO
             channel.send({ type: 'broadcast', event: 'eat', payload: { index: idx } });
@@ -2230,7 +2720,7 @@ function gameTick() {
             // Eu ganho brilho real sugando dele!
         }
         
-        let myNetStealCol = myNetStealCol = pGStealCol - (o.gr || 0) * 3.0;
+        let myNetStealCol = pGStealCol - (o.gr || 0) * 3.0;
         if (myNetStealCol > 0.0 && d < pGStealColRng) {
             pSatBase = Math.min(2.5, pSatBase + myNetStealCol * pGRecvCol * 0.05);
         }
@@ -2240,7 +2730,7 @@ function gameTick() {
         let distToHeart = Math.sqrt((playerX - oHeartPos.x)**2 + (playerY - oHeartPos.y)**2);
 
         // Mecânica de comer (Sempre que perto drena, mas no coração drena muito mais)
-        if (d < catchRadius * 1.5) {
+        if (d < myCatchRadius * 1.5) {
             let drainAmt = (distToHeart < 0.15) ? 5.0 : 0.8;
             channel.send({ type: 'broadcast', event: 'drain', payload: { target: id, attacker: myName, amt: drainAmt } });
             if (myParticles < MAX_PARTICLES) myParticles += 1.0; // GANHA APENAS 1 DE MASSA (MESMO NO CORAÇÃO)
@@ -2250,7 +2740,7 @@ function gameTick() {
             if (distToHeart < 0.15) showMsg("DRENANDO CORAÇÃO DE " + id.toUpperCase() + "!");
         }
 
-        if (d < catchRadius * 1.5 && isDashing && (playerVelX*playerVelX + playerVelY*playerVelY) > 0.0001) {
+        if (d < myCatchRadius * 1.5 && isDashing && (playerVelX*playerVelX + playerVelY*playerVelY) > 0.0001) {
             channel.send({ type: 'broadcast', event: 'hit', payload: { target: id, attacker: myName } });
             if (myParticles < MAX_PARTICLES) myParticles += 1.0; // GANHA APENAS 1 DE MASSA NO GOLPE
             score += 15; document.getElementById('score').textContent = score;
@@ -2280,36 +2770,44 @@ function gameTick() {
 
     myCurve = curve;
 
-    // Atualizar HUD Geométrico
+    // Atualizar HUD Geométrico (PERFIL CIENTÍFICO)
     if (document.getElementById('hud-class')) {
+        document.getElementById('hud-user').textContent = myName.toUpperCase();
         document.getElementById('hud-class').textContent = cls;
-        document.getElementById('hud-curve').textContent = curve + " (" + name + ")";
+        document.getElementById('hud-curve').textContent = curve;
         document.getElementById('hud-mass').textContent = Math.floor(m);
         document.getElementById('sld-mass').value = Math.floor(m);
         document.getElementById('val-mass-sld').textContent = Math.floor(m);
         
-        // Mapear XYZ aproximado usado no shader para cada tipo
-        let xyz = "1.0, 1.0, 1.0";
-        if (curve === 0) xyz = "4.0, 1.0, 3.0";
-        else if (curve === 2) xyz = "2.0, 1.0, 1.0";
-        else if (curve === 3) xyz = "5.0, 2.0, 4.0";
-        else if (curve === 4) xyz = "3.0, 1.0, 2.0";
-        else if (curve === 5) xyz = "6.0, 1.0, 1.5";
-        else if (curve === 7) xyz = "8.0, 3.0, 5.0";
-        else if (curve === 8) xyz = "7.0, 1.0, 0.5";
-        document.getElementById('hud-xyz').textContent = xyz;
+        // Dados Científicos da Curva
+        let meta = getCurveMeta(curve);
+        document.getElementById('hud-sci-name').textContent = meta.name;
 
-        const relSpeed = Math.sqrt(playerVelX*playerVelX + playerVelY*playerVelY) * 1000;
-        // Parâmetros Técnicos (Sincronizados com o Shader usando as variáveis do Editor)
+        // Parâmetros em Tempo Real (Mutação Passiva)
+        document.getElementById('hud-val-x').textContent = pX.toFixed(2);
+        document.getElementById('hud-val-y').textContent = pY.toFixed(2);
+        document.getElementById('hud-val-z').textContent = pZ.toFixed(2);
+        document.getElementById('hud-val-w').textContent = pW.toFixed(2);
+        document.getElementById('hud-val-k').textContent = pK.toFixed(2);
+        document.getElementById('hud-val-jit').textContent = pJitter.toFixed(3);
+        document.getElementById('hud-val-twi').textContent = pTwist.toFixed(2);
+        document.getElementById('hud-val-ske').textContent = pSke.toFixed(2);
+        document.getElementById('hud-val-den').textContent = pDen.toFixed(2);
+        document.getElementById('hud-val-tai').textContent = pTai.toFixed(1);
+        document.getElementById('hud-val-pow').textContent = pPow.toFixed(2);
+
+        // Sensores
         const currentSat = (pSatBase * (0.5 + 0.5 * (m/300)) * (1.0 - myDamage * 0.8)).toFixed(2);
         const currentBri = ((pAura * (0.5 + 0.5 * (m/300)) + myGlow * 1.5) * (1.0 - myDamage * 0.8)).toFixed(2);
+        const relSpeed = Math.sqrt(playerVelX*playerVelX + playerVelY*playerVelY) * 1000;
+        
         document.getElementById('hud-sat').textContent = currentSat;
         document.getElementById('hud-bri').textContent = currentBri;
         document.getElementById('hud-spin').textContent = "x" + (1.0 + (relSpeed / 100)).toFixed(2);
         
         const statusEl = document.getElementById('hud-status');
         if (myDamage > 0.1) {
-            statusEl.textContent = "FERIDO";
+            statusEl.textContent = "DANO CRÍTICO";
             statusEl.className = "geo-val status-injured";
         } else {
             statusEl.textContent = "SAUDÁVEL";

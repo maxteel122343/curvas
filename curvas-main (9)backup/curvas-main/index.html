@@ -13,13 +13,19 @@
     --secondary: #7000ff;
     --accent: #ff00ea;
   }
+  * {
+    box-sizing: border-box;
+  }
   body {
     margin: 0;
     overflow: hidden;
     background: #000;
     font-family: 'Outfit', 'Segoe UI', sans-serif;
     color: white;
+    width: 100vw;
+    height: 100vh;
   }
+
   canvas {
     width: 100vw;
     height: 100vh;
@@ -127,7 +133,7 @@
     position: fixed;
     top: 20px;
     right: 20px;
-    width: 300px;
+    width: 280px;
     max-height: calc(100vh - 40px);
     background: rgba(10, 10, 25, 0.85);
     backdrop-filter: blur(20px);
@@ -136,10 +142,10 @@
     padding: 20px;
     z-index: 3000;
     overflow-y: auto;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0;
     pointer-events: none;
-    transform: translateX(50px) scale(0.95);
+    transform: translateX(30px) scale(0.98);
     box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
   }
   #creative-lab.active {
@@ -147,6 +153,7 @@
     pointer-events: auto;
     transform: translateX(0) scale(1);
   }
+
   
   .close-settings {
     position: absolute;
@@ -448,21 +455,28 @@
 
   /* GEOMETRY HUD */
   #geo-hud {
-    position: absolute;
+    position: fixed;
     top: 20px;
     left: 20px;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(0, 242, 255, 0.3);
-    padding: 12px 18px;
+    padding: 15px;
     border-radius: 14px;
     color: #fff;
     font-family: 'Outfit', sans-serif;
-    min-width: 200px;
+    width: 220px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
     z-index: 100;
     pointer-events: none;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
   }
+  #geo-hud::-webkit-scrollbar { width: 4px; }
+  #geo-hud::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 2px; }
+
   #geo-hud h4 {
     margin: 0 0 8px 0;
     font-size: 11px;
